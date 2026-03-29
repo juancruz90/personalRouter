@@ -1,0 +1,41 @@
+{
+  "name": "@openclaw/provider-ocom",
+  "version": "0.1.0",
+  "description": "OpenClaw Multi-Account Provider Service (OCOM) - routing, failover, token vault",
+  "main": "dist/server.js",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "test": "vitest",
+    "migrate": "node dist/migrate.js",
+    "status:accounts": "node scripts/accounts-status.js",
+    "status:account": "node scripts/account-status.js"
+  },
+  "keywords": [
+    "openclaw",
+    "provider",
+    "oauth",
+    "multi-account"
+  ],
+  "author": "florencia",
+  "license": "MIT",
+  "dependencies": {
+    "fastify": "^4.26.0",
+    "@fastify/cors": "^8.5.0",
+    "@fastify/helmet": "^11.1.1",
+    "@fastify/websocket": "^8.3.1",
+    "sqlite3": "^5.1.7",
+    "crypto": "^1.0.1",
+    "dotenv": "^16.4.5",
+    "winston": "^3.11.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.3",
+    "vitest": "^1.2.2"
+  },
+  "type": "commonjs"
+}

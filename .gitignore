@@ -1,0 +1,65 @@
+# Dependencias y build
+node_modules/
+dist/
+ocom/node_modules/
+ocom/dist/
+
+# Configuración y secrets
+.env
+.openclaw/
+*.key
+*.pem
+
+# Bases de datos y datos
+data/
+ocom/data/
+*.db
+*.sqlite
+
+# Logs y outputs
+*.log
+ocom.err
+probe_debug.json
+
+# Workspace auxiliar
+memory/
+AGENTS.md
+BOOTSTRAP.md
+HEARTBEAT.md
+IDENTITY.md
+SOUL.md
+TOOLS.md
+USER.md
+agents/
+scripts/
+lab/
+watcher*.py
+watch_*.py
+check_*.py
+inactivity*.py
+inactividad*.py
+list_tickets.ps1
+check_in_progress_temp.ps1
+g_drive/
+imagenes/
+llama-config.yaml
+openclaw-*.yaml
+Proyecto.xlsx
+excel_scan.*
+openclaw-codex-oauth-project.html
+
+# Directorios del puntode proyecto (relativos a este workspace)
+project_hub/_repair_both.py
+project_hub/check_hykar.py
+project_hub/check_inactividad_watcher.py
+project_hub/deliverables/
+project_hub/expand_backlog_to_120.py
+project_hub/normalize_tickets_self_contained.py
+project_hub/refine_backlog_1_2.py
+project_hub/trim_backlog_under_150.py
+project_hub/worker_supervisor.py
+
+# Otros
+.DS_Store
+.vscode/
+.idea/

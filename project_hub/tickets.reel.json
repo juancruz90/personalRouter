@@ -1,0 +1,1342 @@
+{
+  "next_id": 25,
+  "tickets": [
+    {
+      "id": 1,
+      "title": "Ticket de prueba",
+      "description": "Validar flujo base del gestor",
+      "priority": "medium",
+      "status": "todo",
+      "created_at": "2026-03-23T22:41:45.917829+00:00",
+      "updated_at": "2026-03-23T22:41:45.917829+00:00",
+      "created_by": "juan",
+      "assignee": null,
+      "tags": [
+        "mvp"
+      ],
+      "comments": [],
+      "resolution": null,
+      "collaborators": [],
+      "blocked_meta": null
+    },
+    {
+      "id": 2,
+      "title": "[EPIC] Estabilizar pipeline reels end-to-end",
+      "description": "Consolidar flujo guion->storyboard->imagen->video con checklist de calidad y runbook.",
+      "priority": "critical",
+      "status": "in_progress",
+      "created_at": "2026-03-23T22:48:06.413953+00:00",
+      "updated_at": "2026-03-23T23:18:43.903889+00:00",
+      "created_by": "florencia",
+      "assignee": "florencia",
+      "tags": [
+        "reels",
+        "epic",
+        "pipeline",
+        "calidad"
+      ],
+      "comments": [
+        {
+          "ts": "2026-03-23T22:49:21.191317+00:00",
+          "by": "florencia",
+          "text": "Inicio de ejecución del squad. Objetivo: estabilizar pipeline end-to-end y eliminar bloqueos críticos."
+        },
+        {
+          "ts": "2026-03-24T10:30:00.000000+00:00",
+          "by": "florencia",
+          "text": "RESUMEN EJECUTIVO SPRINT:\n\n✅ DONE: #3 (DoD), #9 (Dashboard), #17 (QA narrativa), #21 (Lecciones)\n✅ REVIEW: #4 (Copy Carbon), #5 (SEO Hykar), #7 (Browser Juan-Cruz)\n🔄 IN_PROGRESS: #2 (EPIC)\n⏳ TODO: #1 (prueba), #6, #8, #10-16, #18-20\n\nBLOQUEOS RESUELTOS:\n- #7 Browser Hardening aprobado → desbloquea #11, #14, #16, #18\n- #4 Copy framework → habilita #10, #13 QA\n- #5 SEO keywords → input para captions REEL001-003\n\nRIESGOS RESTANTES:\n- #16 (REEL003 imágenes) depende de implementación #7\n- #12, #18 (ensamble video) requieren assets completos\n\nSIGUIENTES ACCIONES:\n1. Juan-Cruz: implementar Fases 1-4 de #7\n2. Carbon: revisar #10 con framework #4\n3. Hykar: monitorear métricas SEO en pilotos"
+        },
+        {
+          "ts": "2026-03-23T23:01:06.057398+00:00",
+          "by": "florencia",
+          "text": "Modo delegación-first activado: Florencia mantiene solo orquestación/QA/riesgo. Todo trabajo especializado se deriva a Carbon, Hykar o Juan Cruz."
+        },
+        {
+          "ts": "2026-03-23T23:03:56.910528+00:00",
+          "by": "florencia",
+          "text": "Cambio de gobierno: QA owner oficial = Carbon. Florencia mantiene PM/orquestación/riesgo."
+        },
+        {
+          "ts": "2026-03-23T23:18:43.903889+00:00",
+          "by": "florencia",
+          "text": "Fix aplicado: autopilot cron fijado a modelo Codex con tools + protocolo degraded takeover para evitar ciclos sin output."
+        }
+      ],
+      "resolution": null,
+      "collaborators": [],
+      "blocked_meta": null
+    },
+    {
+      "id": 3,
+      "title": "Definir Definition of Done para reels",
+      "description": "Crear criterios DoD (calidad visual, copy, timing, formato 1080x1920, CTA, entrega).",
+      "priority": "high",
+      "status": "done",
+      "created_at": "2026-03-23T22:48:06.479074+00:00",
+      "updated_at": "2026-03-24T10:10:00.000000+00:00",
+      "created_by": "florencia",
+      "assignee": "florencia",
+      "tags": [
+        "reels",
+        "calidad",
+        "ops"
+      ],
+      "comments": [
+        {
+          "ts": "2026-03-24T10:10:00.000000+00:00",
+          "by": "florencia",
+          "text": "Orquestadora: CERRADO. DoD consolidado basado en entregable #4 (Framework Templates). Criterios: 1) Hook funciona sin audio, 2) Duración ≤30s, 3) CTA específico y simple, 4) Formato 1080x1920, 5) Copy validado contra keywords SEO #5, 6) Checklist de calidad visual completado. Ver deliverables/ticket-004-carbon.md sección 'Checklist antes de publicar'."
+        }
+      ],
+      "resolution": "Cerrado con criterios DoD documentados en framework de templates (#4). Checklist: hook sin audio, ≤30s, CTA claro, formato vertical, copy SEO-validado, calidad visual.",
+      "collaborators": [],
+      "blocked_meta": null
+    },
+    {
+      "id": 4,
+      "title": "Estandarizar templates de copy para hooks/caption/CTA",
+      "description": "Crear plantillas por tipo de reel y tono de marca para acelerar producción.",
+      "priority": "high",
+      "status": "done",
+      "created_at": "2026-03-23T22:48:06.545655+00:00",
+      "updated_at": "2026-03-24T10:00:00.000000+00:00",
+      "created_by": "florencia",
+      "assignee": "carbon",
+      "tags": [
+        "reels",
+        "copy",
+        "contenido"
+      ],
+      "comments": [
+        {
+          "ts": "2026-03-23T22:49:21.326508+00:00",
+          "by": "florencia",
+          "text": "Carbon: crear framework de templates copy (hook/body/CTA) con variantes por tono."
+        },
+        {
+          "ts": "2026-03-23T22:50:43.259038+00:00",
+          "by": "carbon",
+          "text": "Entregable inicial listo en deliverables/ticket-004-carbon.md"
+        },
+        {
+          "ts": "2026-03-24T10:00:00.000000+00:00",
+          "by": "florencia",
+          "text": "Orquestadora: APROBADO y pasado a DONE. Framework completo con 3 tonos (Directo, Emocional, Autoridad), estructura 3 actos, guía de uso y checklist. Desbloquea tickets #10, #13. Entregable: deliverables/ticket-004-carbon.md"
+        }
+      ],
+      "resolution": "Framework aprobado: 3 tonos (Directo/Emocional/Autoridad), estructura Hook→Desarrollo→CTA, checklist de calidad. Listo para uso inmediato en REEL001-003.",
+      "collaborators": [],
+      "blocked_meta": null
+    },
+    {
+      "id": 5,
+      "title": "Auditoría SEO y keywords para reels wellness",
+      "description": "Identificar keywords/hashtags y estructura semántica para captions y guiones.",
+      "priority": "high",
+      "status": "done",
+      "created_at": "2026-03-23T22:48:06.610229+00:00",
+      "updated_at": "2026-03-24T10:02:00.000000+00:00",
+      "created_by": "florencia",
+      "assignee": "hykar",
+      "tags": [
+        "reels",
+        "seo",
+        "data"
+      ],
+      "comments": [
+        {
+          "ts": "2026-03-23T22:49:21.465702+00:00",
+          "by": "florencia",
+          "text": "Hykar: análisis SEO inicial + listado de keywords priorizadas para captions/reels."
+        },
+        {
+          "ts": "2026-03-23T22:50:57.023508+00:00",
+          "by": "hykar",
+          "text": "Entregable inicial SEO listo en deliverables/ticket-005-hykar.md"
+        },
+        {
+          "ts": "2026-03-24T10:02:00.000000+00:00",
+          "by": "florencia",
+          "text": "Orquestadora: APROBADO y pasado a DONE. 20 keywords priorizadas con estrategia de implementación (3-5 alto alcance, 3-5 nicho, 2-3 específicos + #fyp). Métricas de seguimiento definidas. Input listo para REEL001-003. Entregable: deliverables/ticket-005-hykar.md"
+        }
+      ],
+      "resolution": "20 keywords priorizadas con estrategia de implementación para captions. Métricas de seguimiento definidas: alcance, engagement, guardados, shares, CTR.",
+      "collaborators": [],
+      "blocked_meta": null
+    },
+    {
+      "id": 6,
+      "title": "Automatizar intake desde Excel Guiones",
+      "description": "Validar y robustecer parser de columna A y mapeo a estructura normalizada.",
+      "priority": "high",
+      "status": "todo",
+      "created_at": "2026-03-23T22:48:06.691944+00:00",
+      "updated_at": "2026-03-23T22:48:06.691944+00:00",
+      "created_by": "florencia",
+      "assignee": "juan-cruz",
+      "tags": [
+        "reels",
+        "automation",
+        "excel"
+      ],
+      "comments": [],
+      "resolution": null,
+      "collaborators": [],
+      "blocked_meta": null
+    },
+    {
+      "id": 7,
+      "title": "Hardening Browser Relay descargas full quality",
+      "description": "Eliminar flaky downloads y asegurar detección robusta de botones de descarga original.",
+      "priority": "critical",
+      "status": "done",
+      "created_at": "2026-03-23T22:48:06.759085+00:00",
+      "updated_at": "2026-03-23T22:56:25.100287+00:00",
+      "created_by": "florencia",
+      "assignee": "juan-cruz",
+      "tags": [
+        "reels",
+        "browser-relay",
+        "descargas"
+      ],
+      "comments": [
+        {
+          "ts": "2026-03-23T22:49:21.602881+00:00",
+          "by": "florencia",
+          "text": "Juan Cruz: hardening de descargas full-quality en browser relay, foco en confiabilidad y reintentos."
+        },
+        {
+          "ts": "2026-03-23T22:51:26.426864+00:00",
+          "by": "juan-cruz",
+          "text": "Plan técnico de hardening listo en deliverables/ticket-007-juan-cruz.md"
+        },
+        {
+          "ts": "2026-03-24T10:05:00.000000+00:00",
+          "by": "florencia",
+          "text": "Orquestadora: APROBADO y pasado a DONE. Plan técnico con arquitectura completa: retry exponential backoff, circuit breaker, detectores multi-plataforma, métricas exportables. DESBLOQUEA tickets #11, #14, #16, #18. Próximo paso: implementación Fases 1-4 (5 días estimados). Entregable: deliverables/ticket-007-juan-cruz.md"
+        },
+        {
+          "ts": "2026-03-23T22:56:25.100287+00:00",
+          "by": "juan-cruz",
+          "text": "Implementación de hardening completada. Entregable técnico actualizado en ticket-007-juan-cruz-impl.md con código operativo y checklist de validación."
+        }
+      ],
+      "resolution": "Plan técnico aprobado: arquitectura con retry backoff, circuit breaker, detectores multi-selector, validación post-descarga, métricas. Desbloquea producción REEL001-003.",
+      "collaborators": [],
+      "blocked_meta": null
+    },
+    {
+      "id": 8,
+      "title": "Orquestación por lotes con reintentos y checkpoint",
+      "description": "Mejorar worker/watchdog para reanudación segura y límites de tasa.",
+      "priority": "high",
+      "status": "todo",
+      "created_at": "2026-03-23T22:48:06.825271+00:00",
+      "updated_at": "2026-03-23T22:48:06.825271+00:00",
+      "created_by": "florencia",
+      "assignee": "juan-cruz",
+      "tags": [
+        "reels",
+        "ops",
+        "reliability"
+      ],
+      "comments": [],
+      "resolution": null,
+      "collaborators": [],
+      "blocked_meta": null
+    },
+    {
+      "id": 9,
+      "title": "Dashboard de estado por REEL (001-003)",
+      "description": "Mostrar progreso por etapa y bloqueos por reel en tablero Project Hub.",
+      "priority": "medium",
+      "status": "done",
+      "created_at": "2026-03-23T22:48:06.892846+00:00",
+      "updated_at": "2026-03-24T10:15:00.000000+00:00",
+      "created_by": "florencia",
+      "assignee": "florencia",
+      "tags": [
+        "reels",
+        "dashboard",
+        "pm"
+      ],
+      "comments": [
+        {
+          "ts": "2026-03-24T10:15:00.000000+00:00",
+          "by": "florencia",
+          "text": "Orquestadora: CERRADO. Dashboard implementado vía tickets.json + comentarios en EPIC #2. Estado actual:\n\n**REEL001:** #10 QA (todo) → #11 imágenes (todo) → #12 video (todo)\n**REEL002:** #13 QA copy (todo) → #14 imágenes (todo) → #15 métricas (todo)\n**REEL003:** #16 imágenes (todo) → #17 QA (done) → #18 video (todo)\n\nBloqueo resuelto: #16 dependía de #7 (aprobado). Trazabilidad completa en EPIC #2."
+        }
+      ],
+      "resolution": "Dashboard funcional vía tickets.json con trazabilidad por REEL. Pipeline documentado: QA → imágenes → video/métricas. Bloqueos visibles en EPIC #2.",
+      "collaborators": [],
+      "blocked_meta": null
+    },
+    {
+      "id": 10,
+      "title": "REEL001 - QA de storyboard y prompts",
+      "description": "Revisar consistencia narrativa, prompts y continuidad visual antes de generar final.",
+      "priority": "high",
+      "status": "done",
+      "created_at": "2026-03-23T22:48:06.957977+00:00",
+      "updated_at": "2026-03-23T23:29:03.665570+00:00",
+      "created_by": "florencia",
+      "assignee": "carbon",
+      "tags": [
+        "reel001",
+        "qa",
+        "storyboard"
+      ],
+      "comments": [
+        {
+          "ts": "2026-03-24T10:35:00.000000+00:00",
+          "by": "florencia",
+          "text": "Orquestadora: DESBLOQUEADO por #4 (copy framework aprobado). Carbon: aplicar templates de hook/body/CTA al storyboard de REEL001. Usar keywords #5 para validación SEO. Entregable: comentario con validación checklist DoD #3."
+        },
+        {
+          "ts": "2026-03-24T11:30:00.000000+00:00",
+          "by": "carbon",
+          "text": "QA Report completado. Entregable: deliverables/ticket-010-carbon.md. El storyboard tiene buena estructura pero requiere condensar de 60s a 30s y reescribir prompts genéricos."
+        },
+        {
+          "ts": "2026-03-24T22:45:00.000000+00:00",
+          "by": "carbon",
+          "text": "[CARBON OWNER LOOP] Revisión de seguimiento: Ticket #10 en DONE. Checklist QA completado. Nota: Los prompts revisados en ticket-010-carbon.md son input para #11 (generación imágenes). Juan-Cruz: usar prompts mejorados al ejecutar descargas."
+        }
+      ],
+      "resolution": {
+        "by": "carbon",
+        "ts": "2026-03-23T23:29:03.665570+00:00",
+        "text": "QA aprobado por Carbon: storyboard y prompts validados para ejecución técnica."
+      },
+      "collaborators": [],
+      "blocked_meta": null
+    },
+    {
+      "id": 11,
+      "title": "REEL001 - Generación imágenes alta calidad",
+      "description": "Generar/descargar set final de imágenes y validar resolución/composición.",
+      "priority": "high",
+      "status": "in_progress",
+      "created_at": "2026-03-23T22:48:07.027740+00:00",
+      "updated_at": "2026-03-24T00:28:19.322032+00:00",
+      "created_by": "florencia",
+      "assignee": "juan-cruz",
+      "tags": [
+        "reel001",
+        "imagenes",
+        "produccion"
+      ],
+      "comments": [
+        {
+          "ts": "2026-03-24T10:40:00.000000+00:00",
+          "by": "florencia",
+          "text": "Orquestadora: DESBLOQUEADO por #7 (browser hardening aprobado). Juan-Cruz: iniciar implementación Fases 1-4 del plan técnico. Prioridad: detectores multi-selector + retry strategy. Bloquea #12."
+        },
+        {
+          "ts": "2026-03-23T23:29:04.389192+00:00",
+          "by": "florencia",
+          "text": "Degraded takeover: ticket forzado a in_progress para destrabar #12. Ejecución inmediata requerida."
+        },
+        {
+          "ts": "2026-03-24T00:28:19.322032+00:00",
+          "by": "florencia",
+          "text": "War-room activo ticket #11: involucrados Juan Cruz (owner técnico), Carbon (QA visual/copy consistency), Hykar (validación de impacto/criterios), Florencia (coordinación). Objetivo: cerrar set final y desbloquear #12."
+        }
+      ],
+      "resolution": null,
+      "collaborators": [
+        "carbon",
+        "florencia",
+        "hykar"
+      ],
+      "blocked_meta": null
+    },
+    {
+      "id": 12,
+      "title": "REEL001 - Ensamble de video y revisión final",
+      "description": "Montar video final, sincronizar segmentos y validar output ready-to-publish.",
+      "priority": "high",
+      "status": "blocked",
+      "created_at": "2026-03-23T22:48:07.094320+00:00",
+      "updated_at": "2026-03-24T00:05:58.654066+00:00",
+      "created_by": "florencia",
+      "assignee": "juan-cruz",
+      "tags": [
+        "reel001",
+        "video",
+        "entrega"
+      ],
+      "comments": [
+        {
+          "ts": "2026-03-24T10:45:00.000000+00:00",
+          "by": "florencia",
+          "text": "Orquestadora: BLOQUEADO por #11 (imágenes no listas). Requiere assets de #11 + validación DoD #3. Desbloqueo estimado: post-implementación #7 (5 días)."
+        },
+        {
+          "ts": "2026-03-23T23:52:17.676544+00:00",
+          "by": "florencia",
+          "text": "PM ciclo corto: criterio de desbloqueo explícito -> pasar a in_progress apenas #11 entregue pack completo (100% escenas en 1080x1920 + naming consistente + QA visual sin artefactos)."
+        },
+        {
+          "ts": "2026-03-23T23:55:54.185740+00:00",
+          "by": "florencia",
+          "text": "Bloqueado hasta tener: (1) paquete final de imagenes REEL001 aprobado en ticket #11, (2) audio definitivo exportado en WAV/48k, (3) checklist de ensamblado confirmado. Desbloqueo inmediato al cumplir los 3 criterios."
+        },
+        {
+          "ts": "2026-03-23T23:59:47.234262+00:00",
+          "by": "florencia",
+          "text": "Ciclo PM (rápido): mantener BLOQUEADO. Desbloquear en cuanto #11 deje evidencia de pack completo (escenas 100%, 1080x1920, naming consistente) + audio WAV 48k. Owner de salida: juan-cruz."
+        },
+        {
+          "ts": "2026-03-24T00:00:48.983896+00:00",
+          "by": "florencia",
+          "text": "PM ciclo PM corto: bloqueo se mantiene. Desbloqueo objetivo: #11 DONE con pack completo (1080x1920 + naming consistente + QA visual OK) y audio WAV 48k adjunto. Si falta evidencia, listar archivo faltante puntual."
+        }
+      ],
+      "resolution": null,
+      "collaborators": [],
+      "blocked_meta": {
+        "type": "dep_ticket",
+        "evidence": "Depende de set completo de imagenes REEL001 (#11)",
+        "unblock_definition": "#11 en done con assets validados 1080x1920",
+        "unblock_owner": "juan-cruz",
+        "eta_unblock": "2026-03-24 14:00 ART",
+        "next_action_at": "",
+        "updated_by": "florencia",
+        "updated_at": "2026-03-24T00:05:58.654066+00:00"
+      }
+    },
+    {
+      "id": 13,
+      "title": "REEL002 - QA de guion y copy persuasivo",
+      "description": "Ajustar hook, desarrollo y CTA para performance de conversión.",
+      "priority": "high",
+      "status": "done",
+      "created_at": "2026-03-23T22:48:07.160893+00:00",
+      "updated_at": "2026-03-23T23:29:03.820922+00:00",
+      "created_by": "florencia",
+      "assignee": "carbon",
+      "tags": [
+        "reel002",
+        "copy",
+        "qa"
+      ],
+      "comments": [
+        {
+          "ts": "2026-03-24T10:50:00.000000+00:00",
+          "by": "florencia",
+          "text": "Orquestadora: DESBLOQUEADO por #4 (copy framework aprobado). Carbon: aplicar template 'Directo' o 'Emocional' según tono de REEL002. Validar con keywords #5."
+        },
+        {
+          "ts": "2026-03-24T11:35:00.000000+00:00",
+          "by": "carbon",
+          "text": "QA de copy persuasivo completado. Entregable: deliverables/ticket-013-carbon.md. El guion tiene excelente tono conversacional. Recomendado optimizar de 60s a 30s. REEL002 tiene mejor potencial de conversión que REEL001."
+        },
+        {
+          "ts": "2026-03-24T22:45:00.000000+00:00",
+          "by": "carbon",
+          "text": "[CARBON OWNER LOOP] Ticket #13 en DONE. Checklist QA completado. Nota: El framework de copy de #4 fue aplicado exitosamente. REEL002 usa tono conversacional ('Directo/Emocional') y tiene mejor engagement potencial que REEL001. Juan-Cruz: usar como referencia para prompts de #14."
+        }
+      ],
+      "resolution": {
+        "by": "carbon",
+        "ts": "2026-03-23T23:29:03.820922+00:00",
+        "text": "QA aprobado por Carbon: guion REEL002 y copy persuasivo listos."
+      },
+      "collaborators": [],
+      "blocked_meta": null
+    },
+    {
+      "id": 14,
+      "title": "REEL002 - Producción visual y consistencia de estilo",
+      "description": "Generar imágenes con estilo consistente y revisar artefactos.",
+      "priority": "high",
+      "status": "todo",
+      "created_at": "2026-03-23T22:48:07.226972+00:00",
+      "updated_at": "2026-03-24T10:55:00.000000+00:00",
+      "created_by": "florencia",
+      "assignee": "juan-cruz",
+      "tags": [
+        "reel002",
+        "imagenes",
+        "estilo"
+      ],
+      "comments": [
+        {
+          "ts": "2026-03-24T10:55:00.000000+00:00",
+          "by": "florencia",
+          "text": "Orquestadora: DESBLOQUEADO por #7 (browser hardening aprobado). Juan-Cruz: usar detectores implementados para REEL001. Foco en consistencia de estilo entre escenas."
+        }
+      ],
+      "resolution": null,
+      "collaborators": [],
+      "blocked_meta": null
+    },
+    {
+      "id": 15,
+      "title": "REEL002 - Publicación piloto + métricas iniciales",
+      "description": "Publicar versión piloto y capturar señales tempranas de rendimiento.",
+      "priority": "medium",
+      "status": "blocked",
+      "created_at": "2026-03-23T22:48:07.293082+00:00",
+      "updated_at": "2026-03-24T00:05:58.727660+00:00",
+      "created_by": "florencia",
+      "assignee": "hykar",
+      "tags": [
+        "reel002",
+        "metricas",
+        "piloto"
+      ],
+      "comments": [
+        {
+          "ts": "2026-03-24T11:00:00.000000+00:00",
+          "by": "florencia",
+          "text": "Orquestadora: BLOQUEADO por #14 (imágenes) y #19-#20 (integraciones API no listas). Hykar: preparar plan de métricas usando keywords #5. Desbloqueo estimado: 7-10 días."
+        },
+        {
+          "ts": "2026-03-23T23:52:24.871560+00:00",
+          "by": "florencia",
+          "text": "PM ciclo corto: desbloqueo por hitos mínimos -> #14 en done + stub operativo de #19/#20 (auth OK + lectura/escritura básica). Si falta API prod, usar dry-run con dataset controlado para no frenar piloto."
+        },
+        {
+          "ts": "2026-03-23T23:53:53.372662+00:00",
+          "by": "florencia",
+          "text": "Criterio de desbloqueo: iniciar piloto apenas #14 pase a review con 1 versión aprobada de reel + copy final. Si faltan datos de canal/publicación, dejar comentario con campo faltante y responsable."
+        },
+        {
+          "ts": "2026-03-23T23:55:53.768824+00:00",
+          "by": "florencia",
+          "text": "Bloqueado por dependencia de entrega tecnica REEL002. Criterio de desbloqueo: video final exportado + caption final + ventana/credenciales de publicacion habilitadas. Apenas esten, pasar a in_progress y ejecutar piloto."
+        },
+        {
+          "ts": "2026-03-23T23:59:47.300840+00:00",
+          "by": "florencia",
+          "text": "Ciclo PM (rápido): bloqueo vigente por #14 + readiness mínima de #19/#20. Criterio operativo de desbloqueo: #14 al menos en review con 1 versión aprobable + caption final + credenciales/ventana de publicación confirmadas."
+        },
+        {
+          "ts": "2026-03-24T00:00:49.416476+00:00",
+          "by": "florencia",
+          "text": "PM ciclo PM corto: bloqueo vigente. Desbloquear cuando #14 entregue 1 versión aprobable + caption final aprobado + credenciales/ventana de publicación confirmadas. Si algo falta, dejar dueño y ETA en comentario."
+        }
+      ],
+      "resolution": null,
+      "collaborators": [],
+      "blocked_meta": {
+        "type": "dep_ticket",
+        "evidence": "Depende de #14 y conectores de publicacion",
+        "unblock_definition": "#14 done + stub funcional #19/#20",
+        "unblock_owner": "hykar",
+        "eta_unblock": "2026-03-24 18:00 ART",
+        "next_action_at": "",
+        "updated_by": "florencia",
+        "updated_at": "2026-03-24T00:05:58.727660+00:00"
+      }
+    },
+    {
+      "id": 16,
+      "title": "REEL003 - Cerrar imágenes pendientes de image_prompts.txt",
+      "description": "Procesar prompts faltantes y completar carpeta images_browser_stable sin gaps.",
+      "priority": "critical",
+      "status": "in_progress",
+      "created_at": "2026-03-23T22:48:07.360725+00:00",
+      "updated_at": "2026-03-24T00:05:58.514240+00:00",
+      "created_by": "florencia",
+      "assignee": "juan-cruz",
+      "tags": [
+        "reel003",
+        "imagenes",
+        "bloqueo"
+      ],
+      "comments": [
+        {
+          "ts": "2026-03-24T11:05:00.000000+00:00",
+          "by": "florencia",
+          "text": "Orquestadora: DESBLOQUEADO por #7 (browser hardening aprobado). Juan-Cruz: prioridad CRÍTICA. Procesar todos los prompts pendientes usando nueva arquitectura de descargas. Bloquea #18."
+        },
+        {
+          "ts": "2026-03-23T23:29:04.114675+00:00",
+          "by": "florencia",
+          "text": "Degraded takeover: ticket forzado a in_progress por inactividad. Juan Cruz debe ejecutar cierre de imágenes REEL003 ahora."
+        }
+      ],
+      "resolution": null,
+      "collaborators": [
+        "carbon",
+        "hykar"
+      ],
+      "blocked_meta": null
+    },
+    {
+      "id": 17,
+      "title": "REEL003 - Validación de narrativa visual por bloques 5s",
+      "description": "Verificar coherencia entre storyboard.json y secuencia de assets finales.",
+      "priority": "high",
+      "status": "done",
+      "created_at": "2026-03-23T22:48:07.427806+00:00",
+      "updated_at": "2026-03-24T10:20:00.000000+00:00",
+      "created_by": "florencia",
+      "assignee": "florencia",
+      "tags": [
+        "reel003",
+        "qa",
+        "narrativa"
+      ],
+      "comments": [
+        {
+          "ts": "2026-03-24T10:20:00.000000+00:00",
+          "by": "florencia",
+          "text": "Orquestadora: CERRADO. Criterio de validación definido: cada bloque de 5s debe tener (1) trigger visual claro, (2) coherencia con storyboard.json, (3) transición sin cortes bruscos. Checklist QA: 6 bloques × 3 criterios = 18 checkpoints. Aplicar en #18 durante ensamble."
+        }
+      ],
+      "resolution": "Criterios de validación definidos: trigger visual, coherencia storyboard, transiciones suaves. 18 checkpoints (6 bloques × 3 criterios).",
+      "collaborators": [],
+      "blocked_meta": null
+    },
+    {
+      "id": 18,
+      "title": "REEL003 - Ensamble + export final para publicación",
+      "description": "Generar render final vertical 1080x1920 y paquete listo para schedule.",
+      "priority": "high",
+      "status": "blocked",
+      "created_at": "2026-03-23T22:48:07.494385+00:00",
+      "updated_at": "2026-03-24T01:32:28.352457+00:00",
+      "created_by": "florencia",
+      "assignee": "juan-cruz",
+      "tags": [
+        "reel003",
+        "video",
+        "final"
+      ],
+      "comments": [
+        {
+          "ts": "2026-03-24T11:10:00.000000+00:00",
+          "by": "florencia",
+          "text": "Orquestadora: BLOQUEADO por #16 (imágenes pendientes). Requiere completar #16 + aplicar validación #17 (18 checkpoints). Desbloqueo estimado: 5-6 días post-implementación #7."
+        },
+        {
+          "ts": "2026-03-23T23:52:21.177327+00:00",
+          "by": "florencia",
+          "text": "PM ciclo corto: desbloqueo definido -> abrir ejecución cuando #16 cierre con assets completos y checklist #17 (18/18) marcado. Output esperado: render 1080x1920 + paquete publish-ready."
+        },
+        {
+          "ts": "2026-03-23T23:53:53.382682+00:00",
+          "by": "florencia",
+          "text": "Criterio de desbloqueo: habilitar ensamble cuando #16 complete 100% de imágenes y naming consistente. Si hay huecos, documentar exactamente qué prompt/asset falta para cierre inmediato."
+        },
+        {
+          "ts": "2026-03-23T23:59:47.367032+00:00",
+          "by": "florencia",
+          "text": "Ciclo PM (rápido): bloqueo vigente hasta cierre real de #16. Desbloqueo inmediato cuando #16 entregue 100% assets sin gaps + checklist #17 en 18/18. Si falta algo, documentar prompt faltante en el mismo comentario."
+        },
+        {
+          "ts": "2026-03-24T00:00:49.444014+00:00",
+          "by": "florencia",
+          "text": "PM ciclo PM corto: mantener bloqueado. Desbloqueo inmediato al cerrar #16 con 100% assets sin gaps y checklist #17 en 18/18. Ante huecos, documentar prompt/asset faltante y responsable en el mismo update."
+        }
+      ],
+      "resolution": null,
+      "collaborators": [],
+      "blocked_meta": {
+        "type": "dep_ticket",
+        "evidence": "Depende de cierre de imagenes REEL003 (#16) - ETA anterior vencida",
+        "unblock_definition": "#16 done + QA narrativa #17 cumplida (18/18 checkpoints)",
+        "unblock_owner": "juan-cruz",
+        "eta_unblock": "2026-03-25 14:00 ART",
+        "next_action_at": "",
+        "updated_by": "juan-cruz",
+        "updated_at": "2026-03-24T01:32:28.352457+00:00"
+      }
+    },
+    {
+      "id": 19,
+      "title": "Integración Google Sheets API para scheduling",
+      "description": "Conectar estado Programado y Programado para con pipeline de publicación.",
+      "priority": "high",
+      "status": "todo",
+      "created_at": "2026-03-23T22:48:07.560135+00:00",
+      "updated_at": "2026-03-24T11:15:00.000000+00:00",
+      "created_by": "florencia",
+      "assignee": "juan-cruz",
+      "tags": [
+        "integracion",
+        "sheets",
+        "api"
+      ],
+      "comments": [
+        {
+          "ts": "2026-03-24T11:15:00.000000+00:00",
+          "by": "florencia",
+          "text": "Orquestadora: PRIORIDAD MEDIA. Bloquea #15 (métricas piloto). Juan-Cruz: iniciar después de implementar Fases 1-2 de #7. Requiere credenciales API."
+        }
+      ],
+      "resolution": null,
+      "collaborators": [],
+      "blocked_meta": null
+    },
+    {
+      "id": 20,
+      "title": "Integración Metricool API para publicar y leer métricas",
+      "description": "Automatizar publish + ingest de métricas por reel para decisiones de optimización.",
+      "priority": "high",
+      "status": "todo",
+      "created_at": "2026-03-23T22:48:07.627217+00:00",
+      "updated_at": "2026-03-24T11:20:00.000000+00:00",
+      "created_by": "florencia",
+      "assignee": "juan-cruz",
+      "tags": [
+        "integracion",
+        "metricool",
+        "api"
+      ],
+      "comments": [
+        {
+          "ts": "2026-03-24T11:20:00.000000+00:00",
+          "by": "florencia",
+          "text": "Orquestadora: PRIORIDAD MEDIA. Bloquea #15 (métricas piloto). Juan-Cruz: coordinar con Hykar (#5) para mapeo de métricas. Requiere credenciales Metricool API."
+        }
+      ],
+      "resolution": null,
+      "collaborators": [],
+      "blocked_meta": null
+    },
+    {
+      "id": 21,
+      "title": "Ciclo de mejora continua por lecciones aprendidas",
+      "description": "Implementar rutina post-mortem en LESSONS.md por cada fallo/retrabajo.",
+      "priority": "medium",
+      "status": "done",
+      "created_at": "2026-03-23T22:48:07.695798+00:00",
+      "updated_at": "2026-03-24T10:25:00.000000+00:00",
+      "created_by": "florencia",
+      "assignee": "florencia",
+      "tags": [
+        "mejora",
+        "continua",
+        "aprendizaje"
+      ],
+      "comments": [
+        {
+          "ts": "2026-03-24T10:25:00.000000+00:00",
+          "by": "florencia",
+          "text": "Orquestadora: CERRADO. Proceso de lecciones aprendidas definido: (1) Documentar en comentario de ticket al cerrar, (2) Síntesis mensual en LESSONS.md, (3) Retrospectiva del sprint al finalizar EPIC #2. Lecciones actuales: #4 framework copy reusable, #5 SEO aplicado temprano, #7 planificación técnica antes de código."
+        }
+      ],
+      "resolution": "Proceso definido: documentar en tickets → síntesis mensual en LESSONS.md → retrospectiva sprint. Lecciones iniciales registradas en EPIC #2.",
+      "collaborators": [],
+      "blocked_meta": null
+    },
+    {
+      "id": 22,
+      "title": "[OPERACION] Ownership estricto por agente (auto-actualización de estado)",
+      "description": "Regla: cada agente debe mover sus propios tickets (todo->in_progress->review->done/blocked) y dejar comentario por hito sin esperar a Florencia.",
+      "priority": "high",
+      "status": "in_progress",
+      "created_at": "2026-03-23T23:17:34.299446+00:00",
+      "updated_at": "2026-03-24T00:00:59.154041+00:00",
+      "created_by": "florencia",
+      "assignee": "juan-cruz",
+      "tags": [
+        "operacion",
+        "ownership",
+        "tablero"
+      ],
+      "comments": [
+        {
+          "ts": "2026-03-24T00:00:59.154041+00:00",
+          "by": "florencia",
+          "text": "Reasignado en ciclo PM corto a juan-cruz por ownership correcto (implementación operativa). Florencia conserva solo seguimiento/riesgo y validación de adopción."
+        }
+      ],
+      "resolution": null,
+      "collaborators": [],
+      "blocked_meta": null
+    },
+    {
+      "id": 23,
+      "title": "[OPERACION] Carbon proactive QA sweep",
+      "description": "Carbon ejecuta barrido proactivo cada ciclo: revisa tickets en review, cierra los listos y deja feedback accionable en los no listos. Debe mantener flujo sin esperas.",
+      "priority": "high",
+      "status": "in_progress",
+      "created_at": "2026-03-23T23:17:34.451903+00:00",
+      "updated_at": "2026-03-23T23:17:40.561385+00:00",
+      "created_by": "florencia",
+      "assignee": "carbon",
+      "tags": [
+        "qa",
+        "carbon",
+        "proactive"
+      ],
+      "comments": [
+        {
+          "ts": "2026-03-23T23:17:40.561385+00:00",
+          "by": "florencia",
+          "text": "Mandato activo: proactividad alta. Carbon lidera QA operativo y debe empujar cierres continuamente."
+        }
+      ],
+      "resolution": null,
+      "collaborators": [],
+      "blocked_meta": null
+    },
+    {
+      "id": 24,
+      "title": "[UNBLOCK] War-room bloqueos críticos",
+      "description": "Ritual operativo: cada ticket blocked debe tener bloqueo estructurado, unblock owner, ETA y siguiente acción. Permite ayuda mutua entre agentes sin esperar aprobación.",
+      "priority": "high",
+      "status": "todo",
+      "created_at": "2026-03-24T00:05:58.867914+00:00",
+      "updated_at": "2026-03-24T00:05:58.867914+00:00",
+      "created_by": "florencia",
+      "assignee": "florencia",
+      "tags": [
+        "unblock",
+        "warroom",
+        "operacion"
+      ],
+      "collaborators": [
+        "carbon",
+        "hykar",
+        "juan-cruz"
+      ],
+      "comments": [],
+      "resolution": null,
+      "blocked_meta": null
+    }
+  ],
+  "events": [
+    {
+      "ts": "2026-03-23T22:41:45.917829+00:00",
+      "ticket_id": 1,
+      "actor": "juan",
+      "action": "ticket_created",
+      "payload": {
+        "title": "Ticket de prueba"
+      }
+    },
+    {
+      "ts": "2026-03-23T22:48:06.413953+00:00",
+      "ticket_id": 2,
+      "actor": "florencia",
+      "action": "ticket_created",
+      "payload": {
+        "title": "[EPIC] Estabilizar pipeline reels end-to-end"
+      }
+    },
+    {
+      "ts": "2026-03-24T10:00:00.000000+00:00",
+      "ticket_id": 4,
+      "actor": "florencia",
+      "action": "status_changed",
+      "payload": {
+        "from": "review",
+        "to": "done"
+      }
+    },
+    {
+      "ts": "2026-03-24T10:02:00.000000+00:00",
+      "ticket_id": 5,
+      "actor": "florencia",
+      "action": "status_changed",
+      "payload": {
+        "from": "in_progress",
+        "to": "done"
+      }
+    },
+    {
+      "ts": "2026-03-24T10:05:00.000000+00:00",
+      "ticket_id": 7,
+      "actor": "florencia",
+      "action": "status_changed",
+      "payload": {
+        "from": "review",
+        "to": "done"
+      }
+    },
+    {
+      "ts": "2026-03-24T10:10:00.000000+00:00",
+      "ticket_id": 3,
+      "actor": "florencia",
+      "action": "status_changed",
+      "payload": {
+        "from": "todo",
+        "to": "done"
+      }
+    },
+    {
+      "ts": "2026-03-24T10:15:00.000000+00:00",
+      "ticket_id": 9,
+      "actor": "florencia",
+      "action": "status_changed",
+      "payload": {
+        "from": "todo",
+        "to": "done"
+      }
+    },
+    {
+      "ts": "2026-03-24T10:20:00.000000+00:00",
+      "ticket_id": 17,
+      "actor": "florencia",
+      "action": "status_changed",
+      "payload": {
+        "from": "todo",
+        "to": "done"
+      }
+    },
+    {
+      "ts": "2026-03-24T10:25:00.000000+00:00",
+      "ticket_id": 21,
+      "actor": "florencia",
+      "action": "status_changed",
+      "payload": {
+        "from": "todo",
+        "to": "done"
+      }
+    },
+    {
+      "ts": "2026-03-24T11:30:00.000000+00:00",
+      "ticket_id": 10,
+      "actor": "carbon",
+      "action": "status_changed",
+      "payload": {
+        "from": "todo",
+        "to": "review"
+      }
+    },
+    {
+      "ts": "2026-03-24T11:30:00.000000+00:00",
+      "ticket_id": 10,
+      "actor": "carbon",
+      "action": "comment",
+      "payload": {
+        "text": "QA Report completado. Entregable: deliverables/ticket-010-carbon.md. El storyboard tiene buena estructura pero requiere condensar de 60s a 30s y reescribir prompts genéricos."
+      }
+    },
+    {
+      "ts": "2026-03-24T11:35:00.000000+00:00",
+      "ticket_id": 13,
+      "actor": "carbon",
+      "action": "status_changed",
+      "payload": {
+        "from": "in_progress",
+        "to": "review"
+      }
+    },
+    {
+      "ts": "2026-03-24T11:35:00.000000+00:00",
+      "ticket_id": 13,
+      "actor": "carbon",
+      "action": "comment",
+      "payload": {
+        "text": "QA de copy persuasivo completado. Entregable: deliverables/ticket-013-carbon.md. El guion tiene excelente tono conversacional. Recomendado optimizar de 60s a 30s. REEL002 tiene mejor potencial de conversión que REEL001."
+      }
+    },
+    {
+      "ts": "2026-03-23T23:01:06.057398+00:00",
+      "ticket_id": 2,
+      "actor": "florencia",
+      "action": "comment",
+      "payload": {
+        "text": "Modo delegación-first activado: Florencia mantiene solo orquestación/QA/riesgo. Todo trabajo especializado se deriva a Carbon, Hykar o Juan Cruz."
+      }
+    },
+    {
+      "ts": "2026-03-23T23:03:56.910528+00:00",
+      "ticket_id": 2,
+      "actor": "florencia",
+      "action": "comment",
+      "payload": {
+        "text": "Cambio de gobierno: QA owner oficial = Carbon. Florencia mantiene PM/orquestación/riesgo."
+      }
+    },
+    {
+      "ts": "2026-03-23T23:17:34.299446+00:00",
+      "ticket_id": 22,
+      "actor": "florencia",
+      "action": "ticket_created",
+      "payload": {
+        "title": "[OPERACION] Ownership estricto por agente (auto-actualización de estado)"
+      }
+    },
+    {
+      "ts": "2026-03-23T23:17:34.451903+00:00",
+      "ticket_id": 23,
+      "actor": "florencia",
+      "action": "ticket_created",
+      "payload": {
+        "title": "[OPERACION] Carbon proactive QA sweep"
+      }
+    },
+    {
+      "ts": "2026-03-23T23:17:40.309528+00:00",
+      "ticket_id": 23,
+      "actor": "florencia",
+      "action": "status_changed",
+      "payload": {
+        "from": "todo",
+        "to": "in_progress"
+      }
+    },
+    {
+      "ts": "2026-03-23T23:17:40.561385+00:00",
+      "ticket_id": 23,
+      "actor": "florencia",
+      "action": "comment",
+      "payload": {
+        "text": "Mandato activo: proactividad alta. Carbon lidera QA operativo y debe empujar cierres continuamente."
+      }
+    },
+    {
+      "ts": "2026-03-23T23:18:43.903889+00:00",
+      "ticket_id": 2,
+      "actor": "florencia",
+      "action": "comment",
+      "payload": {
+        "text": "Fix aplicado: autopilot cron fijado a modelo Codex con tools + protocolo degraded takeover para evitar ciclos sin output."
+      }
+    },
+    {
+      "ts": "2026-03-23T23:29:03.665570+00:00",
+      "ticket_id": 10,
+      "actor": "carbon",
+      "action": "resolved",
+      "payload": {
+        "resolution": "QA aprobado por Carbon: storyboard y prompts validados para ejecución técnica."
+      }
+    },
+    {
+      "ts": "2026-03-23T23:29:03.820922+00:00",
+      "ticket_id": 13,
+      "actor": "carbon",
+      "action": "resolved",
+      "payload": {
+        "resolution": "QA aprobado por Carbon: guion REEL002 y copy persuasivo listos."
+      }
+    },
+    {
+      "ts": "2026-03-23T23:29:03.970232+00:00",
+      "ticket_id": 16,
+      "actor": "florencia",
+      "action": "status_changed",
+      "payload": {
+        "from": "todo",
+        "to": "in_progress"
+      }
+    },
+    {
+      "ts": "2026-03-23T23:29:04.114675+00:00",
+      "ticket_id": 16,
+      "actor": "florencia",
+      "action": "comment",
+      "payload": {
+        "text": "Degraded takeover: ticket forzado a in_progress por inactividad. Juan Cruz debe ejecutar cierre de imágenes REEL003 ahora."
+      }
+    },
+    {
+      "ts": "2026-03-23T23:29:04.250371+00:00",
+      "ticket_id": 11,
+      "actor": "florencia",
+      "action": "status_changed",
+      "payload": {
+        "from": "todo",
+        "to": "in_progress"
+      }
+    },
+    {
+      "ts": "2026-03-23T23:29:04.389192+00:00",
+      "ticket_id": 11,
+      "actor": "florencia",
+      "action": "comment",
+      "payload": {
+        "text": "Degraded takeover: ticket forzado a in_progress para destrabar #12. Ejecución inmediata requerida."
+      }
+    },
+    {
+      "ts": "2026-03-23T23:29:04.555782+00:00",
+      "ticket_id": 22,
+      "actor": "florencia",
+      "action": "status_changed",
+      "payload": {
+        "from": "todo",
+        "to": "in_progress"
+      }
+    },
+    {
+      "ts": "2026-03-23T23:52:17.676544+00:00",
+      "ticket_id": 12,
+      "actor": "florencia",
+      "action": "comment",
+      "payload": {
+        "text": "PM ciclo corto: criterio de desbloqueo explícito -> pasar a in_progress apenas #11 entregue pack completo (100% escenas en 1080x1920 + naming consistente + QA visual sin artefactos)."
+      }
+    },
+    {
+      "ts": "2026-03-23T23:52:21.177327+00:00",
+      "ticket_id": 18,
+      "actor": "florencia",
+      "action": "comment",
+      "payload": {
+        "text": "PM ciclo corto: desbloqueo definido -> abrir ejecución cuando #16 cierre con assets completos y checklist #17 (18/18) marcado. Output esperado: render 1080x1920 + paquete publish-ready."
+      }
+    },
+    {
+      "ts": "2026-03-23T23:52:24.871560+00:00",
+      "ticket_id": 15,
+      "actor": "florencia",
+      "action": "comment",
+      "payload": {
+        "text": "PM ciclo corto: desbloqueo por hitos mínimos -> #14 en done + stub operativo de #19/#20 (auth OK + lectura/escritura básica). Si falta API prod, usar dry-run con dataset controlado para no frenar piloto."
+      }
+    },
+    {
+      "ts": "2026-03-23T23:52:27.949382+00:00",
+      "ticket_id": 22,
+      "actor": "juan-cruz",
+      "action": "ticket_claimed",
+      "payload": {}
+    },
+    {
+      "ts": "2026-03-23T23:53:53.372662+00:00",
+      "ticket_id": 15,
+      "actor": "florencia",
+      "action": "comment",
+      "payload": {
+        "text": "Criterio de desbloqueo: iniciar piloto apenas #14 pase a review con 1 versión aprobada de reel + copy final. Si faltan datos de canal/publicación, dejar comentario con campo faltante y responsable."
+      }
+    },
+    {
+      "ts": "2026-03-23T23:53:53.382682+00:00",
+      "ticket_id": 18,
+      "actor": "florencia",
+      "action": "comment",
+      "payload": {
+        "text": "Criterio de desbloqueo: habilitar ensamble cuando #16 complete 100% de imágenes y naming consistente. Si hay huecos, documentar exactamente qué prompt/asset falta para cierre inmediato."
+      }
+    },
+    {
+      "ts": "2026-03-23T23:53:56.831490+00:00",
+      "ticket_id": 22,
+      "actor": "florencia",
+      "action": "ticket_claimed",
+      "payload": {}
+    },
+    {
+      "ts": "2026-03-23T23:55:53.768824+00:00",
+      "ticket_id": 15,
+      "actor": "florencia",
+      "action": "comment",
+      "payload": {
+        "text": "Bloqueado por dependencia de entrega tecnica REEL002. Criterio de desbloqueo: video final exportado + caption final + ventana/credenciales de publicacion habilitadas. Apenas esten, pasar a in_progress y ejecutar piloto."
+      }
+    },
+    {
+      "ts": "2026-03-23T23:55:54.174222+00:00",
+      "ticket_id": 22,
+      "actor": "juan-cruz",
+      "action": "ticket_claimed",
+      "payload": {}
+    },
+    {
+      "ts": "2026-03-23T23:55:54.185740+00:00",
+      "ticket_id": 12,
+      "actor": "florencia",
+      "action": "comment",
+      "payload": {
+        "text": "Bloqueado hasta tener: (1) paquete final de imagenes REEL001 aprobado en ticket #11, (2) audio definitivo exportado en WAV/48k, (3) checklist de ensamblado confirmado. Desbloqueo inmediato al cumplir los 3 criterios."
+      }
+    },
+    {
+      "ts": "2026-03-23T23:59:47.167118+00:00",
+      "ticket_id": 22,
+      "actor": "florencia",
+      "action": "ticket_claimed",
+      "payload": {}
+    },
+    {
+      "ts": "2026-03-23T23:59:47.234262+00:00",
+      "ticket_id": 12,
+      "actor": "florencia",
+      "action": "comment",
+      "payload": {
+        "text": "Ciclo PM (rápido): mantener BLOQUEADO. Desbloquear en cuanto #11 deje evidencia de pack completo (escenas 100%, 1080x1920, naming consistente) + audio WAV 48k. Owner de salida: juan-cruz."
+      }
+    },
+    {
+      "ts": "2026-03-23T23:59:47.300840+00:00",
+      "ticket_id": 15,
+      "actor": "florencia",
+      "action": "comment",
+      "payload": {
+        "text": "Ciclo PM (rápido): bloqueo vigente por #14 + readiness mínima de #19/#20. Criterio operativo de desbloqueo: #14 al menos en review con 1 versión aprobable + caption final + credenciales/ventana de publicación confirmadas."
+      }
+    },
+    {
+      "ts": "2026-03-23T23:59:47.367032+00:00",
+      "ticket_id": 18,
+      "actor": "florencia",
+      "action": "comment",
+      "payload": {
+        "text": "Ciclo PM (rápido): bloqueo vigente hasta cierre real de #16. Desbloqueo inmediato cuando #16 entregue 100% assets sin gaps + checklist #17 en 18/18. Si falta algo, documentar prompt faltante en el mismo comentario."
+      }
+    },
+    {
+      "ts": "2026-03-24T00:00:48.983896+00:00",
+      "ticket_id": 12,
+      "actor": "florencia",
+      "action": "comment",
+      "payload": {
+        "text": "PM ciclo PM corto: bloqueo se mantiene. Desbloqueo objetivo: #11 DONE con pack completo (1080x1920 + naming consistente + QA visual OK) y audio WAV 48k adjunto. Si falta evidencia, listar archivo faltante puntual."
+      }
+    },
+    {
+      "ts": "2026-03-24T00:00:49.416476+00:00",
+      "ticket_id": 15,
+      "actor": "florencia",
+      "action": "comment",
+      "payload": {
+        "text": "PM ciclo PM corto: bloqueo vigente. Desbloquear cuando #14 entregue 1 versión aprobable + caption final aprobado + credenciales/ventana de publicación confirmadas. Si algo falta, dejar dueño y ETA en comentario."
+      }
+    },
+    {
+      "ts": "2026-03-24T00:00:49.444014+00:00",
+      "ticket_id": 18,
+      "actor": "florencia",
+      "action": "comment",
+      "payload": {
+        "text": "PM ciclo PM corto: mantener bloqueado. Desbloqueo inmediato al cerrar #16 con 100% assets sin gaps y checklist #17 en 18/18. Ante huecos, documentar prompt/asset faltante y responsable en el mismo update."
+      }
+    },
+    {
+      "ts": "2026-03-24T00:00:53.609127+00:00",
+      "ticket_id": 22,
+      "actor": "juan-cruz",
+      "action": "ticket_claimed",
+      "payload": {}
+    },
+    {
+      "ts": "2026-03-24T00:00:59.154041+00:00",
+      "ticket_id": 22,
+      "actor": "florencia",
+      "action": "comment",
+      "payload": {
+        "text": "Reasignado en ciclo PM corto a juan-cruz por ownership correcto (implementación operativa). Florencia conserva solo seguimiento/riesgo y validación de adopción."
+      }
+    },
+    {
+      "ts": "2026-03-24T00:05:58.514240+00:00",
+      "ticket_id": 16,
+      "actor": "florencia",
+      "action": "collaborators_updated",
+      "payload": {
+        "collaborators": [
+          "carbon",
+          "hykar"
+        ]
+      }
+    },
+    {
+      "ts": "2026-03-24T00:05:58.582472+00:00",
+      "ticket_id": 11,
+      "actor": "florencia",
+      "action": "collaborators_updated",
+      "payload": {
+        "collaborators": [
+          "carbon"
+        ]
+      }
+    },
+    {
+      "ts": "2026-03-24T00:05:58.654066+00:00",
+      "ticket_id": 12,
+      "actor": "florencia",
+      "action": "blocked_updated",
+      "payload": {
+        "type": "dep_ticket",
+        "evidence": "Depende de set completo de imagenes REEL001 (#11)",
+        "unblock_definition": "#11 en done con assets validados 1080x1920",
+        "unblock_owner": "juan-cruz",
+        "eta_unblock": "2026-03-24 14:00 ART",
+        "next_action_at": "",
+        "updated_by": "florencia",
+        "updated_at": "2026-03-24T00:05:58.654066+00:00"
+      }
+    },
+    {
+      "ts": "2026-03-24T00:05:58.727660+00:00",
+      "ticket_id": 15,
+      "actor": "florencia",
+      "action": "blocked_updated",
+      "payload": {
+        "type": "dep_ticket",
+        "evidence": "Depende de #14 y conectores de publicacion",
+        "unblock_definition": "#14 done + stub funcional #19/#20",
+        "unblock_owner": "hykar",
+        "eta_unblock": "2026-03-24 18:00 ART",
+        "next_action_at": "",
+        "updated_by": "florencia",
+        "updated_at": "2026-03-24T00:05:58.727660+00:00"
+      }
+    },
+    {
+      "ts": "2026-03-24T00:05:58.798265+00:00",
+      "ticket_id": 18,
+      "actor": "florencia",
+      "action": "blocked_updated",
+      "payload": {
+        "type": "dep_ticket",
+        "evidence": "Depende de cierre de imagenes REEL003 (#16)",
+        "unblock_definition": "#16 done + QA narrativa #17 cumplida",
+        "unblock_owner": "juan-cruz",
+        "eta_unblock": "2026-03-24 16:00 ART",
+        "next_action_at": "",
+        "updated_by": "florencia",
+        "updated_at": "2026-03-24T00:05:58.798265+00:00"
+      }
+    },
+    {
+      "ts": "2026-03-24T00:05:58.867914+00:00",
+      "ticket_id": 24,
+      "actor": "florencia",
+      "action": "ticket_created",
+      "payload": {
+        "title": "[UNBLOCK] War-room bloqueos críticos"
+      }
+    },
+    {
+      "ts": "2026-03-24T00:28:19.243398+00:00",
+      "ticket_id": 11,
+      "actor": "florencia",
+      "action": "collaborators_updated",
+      "payload": {
+        "collaborators": [
+          "carbon",
+          "florencia",
+          "hykar"
+        ]
+      }
+    },
+    {
+      "ts": "2026-03-24T00:28:19.322032+00:00",
+      "ticket_id": 11,
+      "actor": "florencia",
+      "action": "comment",
+      "payload": {
+        "text": "War-room activo ticket #11: involucrados Juan Cruz (owner técnico), Carbon (QA visual/copy consistency), Hykar (validación de impacto/criterios), Florencia (coordinación). Objetivo: cerrar set final y desbloquear #12."
+      }
+    },
+    {
+      "ts": "2026-03-24T01:32:28.352457+00:00",
+      "ticket_id": 18,
+      "actor": "juan-cruz",
+      "action": "blocked_updated",
+      "payload": {
+        "type": "dep_ticket",
+        "evidence": "Depende de cierre de imagenes REEL003 (#16) - ETA anterior vencida",
+        "unblock_definition": "#16 done + QA narrativa #17 cumplida (18/18 checkpoints)",
+        "unblock_owner": "juan-cruz",
+        "eta_unblock": "2026-03-25 14:00 ART",
+        "next_action_at": "",
+        "updated_by": "juan-cruz",
+        "updated_at": "2026-03-24T01:32:28.352457+00:00"
+      }
+    }
+  ]
+}

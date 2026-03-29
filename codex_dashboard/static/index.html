@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <title>Codex Multi-Cuenta Dashboard</title>
+  <style>
+    body{font-family:Arial,sans-serif;margin:20px;background:#0f172a;color:#e2e8f0}
+    h1,h2{margin:.2rem 0}
+    .card{background:#111827;border:1px solid #334155;border-radius:10px;padding:14px;margin:12px 0}
+    table{width:100%;border-collapse:collapse;margin-top:8px}
+    th,td{border-bottom:1px solid #334155;padding:8px;text-align:left;font-size:14px}
+    button{background:#2563eb;color:white;border:none;border-radius:8px;padding:8px 12px;cursor:pointer}
+    button.secondary{background:#475569}
+    input,select{background:#0b1220;color:#e2e8f0;border:1px solid #334155;border-radius:6px;padding:6px}
+    code{background:#0b1220;padding:2px 6px;border-radius:6px}
+    .bad{color:#ef4444}
+    .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  </style>
+</head>
+<body>
+  <h1>Codex Multi-Cuenta Dashboard</h1>
+  <p>MVP para cuentas OAuth Codex + asignación por agente y por proyecto.</p>
+
+  <div class="card row">
+    <label>Proyecto:</label>
+    <select id="projectSel" onchange="loadState()"></select>
+    <button onclick="loadState()">Refrescar</button>
+    <button class="secondary" onclick="saveRouting()">Guardar routing</button>
+    <button onclick="applyRouting()">Aplicar routing (auth order)</button>
+    <span id="status"></span>
+  </div>
+
+  <div class="card">
+    <h2>Proyectos (carga separada)</h2>
+    <div class="row">
+      <input id="newProject" placeholder="nombre proyecto (ej: reels)" />
+      <input id="newAgents" style="width:60%" placeholder="agentes separados por coma (ej: main,hykar,juan-cruz)" />
+      <button onclick="addProject()">Guardar proyecto</button>
+    </div>
+    <small>Tip: los proyectos automáticos se detectan por carpeta workspace del agente.</small>
+  </div>
+
+  <div class="card">
+    <h2>Cuentas detectadas</h2>
+    <table id="accounts"></table>
+  </div>
+
+  <div class="card">
+    <h2>Agentes del proyecto</h2>
+    <table id="agents"></table>
+  </div>
+
+<script>
+let state = {agents:[],accounts:[],routing:{assignments:{}},projects:{}};
+
+function setStatus(msg){ document.getElementById('status').textContent = ' ' + msg; }
+function currentProject(){ return document.getElementById('projectSel').value || 'all'; }
+
+function fillProjectSelector(){
+  const sel = document.getElementById('projectSel');
+  const curr = sel.value || 'all';
+  const keys = Object.keys(state.projects || {}).sort();
+  sel.innerHTML = keys.map(k=>`<option value="${k}">${k} (${(state.projects[k]||[]).length})</option>`).join('');
+  if (keys.includes(curr)) sel.value = curr;
+}
+
+function render(){
+  fillProjectSelector();
+
+  const acc = document.getElementById('accounts');
+  acc.innerHTML = '<tr><th>AccountId</th><th>Perfiles detectados</th></tr>' +
+    state.accounts.map(a=>`<tr><td><code>${a.accountId}</code></td><td>${a.profiles.map(p=>`${p.agent}:${p.profileId}`).join('<br>')}</td></tr>`).join('');
+
+  const ag = document.getElementById('agents');
+  ag.innerHTML = '<tr><th>Agente</th><th>Workspace</th><th>Modelo</th><th>Perfiles codex</th><th>Asignación (coma)</th></tr>' +
+    state.agents.map(a=>{
+      const assigned = (state.routing.assignments?.[a.id] || a.codexProfiles.map(p=>p.profileId)).join(',');
+      return `<tr>
+        <td>${a.id}</td>
+        <td><small>${a.workspace||'-'}</small></td>
+        <td>${a.resolvedDefault||'-'}</td>
+        <td>${(a.codexProfiles||[]).map(p=>`${p.profileId}<br><small>${p.accountId}</small>`).join('<br>')||'<span class="bad">sin codex</span>'}</td>
+        <td><input id="asg-${a.id}" value="${assigned}" style="width:95%"/></td>
+      </tr>`;
+    }).join('');
+}
+
+function collectAssignments(){
+  const assignments = {};
+  for (const a of state.agents){
+    const raw = document.getElementById(`asg-${a.id}`)?.value || '';
+    assignments[a.id] = raw.split(',').map(x=>x.trim()).filter(Boolean);
+  }
+  return {project: currentProject(), assignments};
+}
+
+async function loadState(){
+  const project = currentProject();
+  const r = await fetch('/api/state?project=' + encodeURIComponent(project));
+  state = await r.json();
+  render();
+  setStatus('estado actualizado');
+}
+
+async function saveRouting(){
+  const payload = collectAssignments();
+  const r = await fetch('/api/routing/save',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+  const j = await r.json();
+  setStatus(j.ok ? 'routing guardado' : 'error al guardar');
+}
+
+async function applyRouting(){
+  const payload = collectAssignments();
+  const r = await fetch('/api/routing/apply',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+  const j = await r.json();
+  const ok = (j.results||[]).filter(x=>x.ok).length;
+  const total = (j.results||[]).length;
+  setStatus(`aplicado: ${ok}/${total} ok`);
+  console.log(j);
+}
+
+async function addProject(){
+  const name = document.getElementById('newProject').value.trim();
+  const agents = document.getElementById('newAgents').value.split(',').map(x=>x.trim()).filter(Boolean);
+  if(!name || agents.length===0){ setStatus('completa nombre + agentes'); return; }
+  const projects = {...(state.projects||{})};
+  projects[name] = agents;
+  const r = await fetch('/api/projects/save',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({projects})});
+  const j = await r.json();
+  setStatus(j.ok ? 'proyecto guardado' : 'error guardando proyecto');
+  await loadState();
+  document.getElementById('projectSel').value = name;
+  await loadState();
+}
+
+loadState();
+</script>
+</body>
+</html>

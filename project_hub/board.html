@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Project Hub · Kanban</title>
+  <style>
+    :root{--bg:#0b1220;--panel:#0f172a;--line:#223047;--text:#e2e8f0;--muted:#94a3b8;--brand:#60a5fa}
+    *{box-sizing:border-box} body{margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--text)}
+    header{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid var(--line);position:sticky;top:0;background:rgba(11,18,32,.95);backdrop-filter:blur(8px);z-index:9}
+    .title{font-weight:700}.sub{font-size:12px;color:var(--muted)}
+    .toolbar{display:flex;gap:8px;align-items:center}
+    button,input,select,textarea{background:#0b1324;color:var(--text);border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:13px}
+    button{cursor:pointer}.btn{background:#16233d}.btn:hover{filter:brightness(1.1)}
+    main{display:grid;grid-template-columns:320px 1fr;gap:14px;padding:14px}
+    .panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px}
+    .panel h3{margin:0 0 10px 0;font-size:14px;color:#93c5fd}
+    .grid{display:grid;grid-template-columns:repeat(5,minmax(220px,1fr));gap:10px}
+    .col{background:var(--panel);border:1px solid var(--line);border-radius:12px;min-height:420px}
+    .col h4{margin:0;padding:10px;border-bottom:1px solid var(--line);font-size:13px;color:#93c5fd}
+    .list{padding:10px;display:flex;flex-direction:column;gap:8px}
+    .card{background:#0b1324;border:1px solid var(--line);border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:8px}
+    .row{display:flex;justify-content:space-between;gap:8px;align-items:center}
+    .t{font-size:13px;font-weight:600}
+    .m{font-size:12px;color:var(--muted)}
+    .prio{font-size:11px;border-radius:99px;padding:2px 8px;border:1px solid var(--line)}
+    .critical{color:#fecaca}.high{color:#fdba74}.medium{color:#fde68a}.low{color:#86efac}
+    .actions{display:flex;gap:6px;flex-wrap:wrap}
+    .small{font-size:11px;padding:5px 7px;border-radius:8px}
+    label{font-size:12px;color:var(--muted);display:block;margin:6px 0 4px}
+    textarea{width:100%;min-height:72px;resize:vertical}
+    .card{cursor:pointer}
+    .modal-backdrop{position:fixed;inset:0;background:rgba(2,6,23,.65);display:none;align-items:center;justify-content:center;z-index:30}
+    .modal{width:min(900px,94vw);max-height:86vh;overflow:auto;background:#0f172a;border:1px solid var(--line);border-radius:14px;padding:14px}
+    .modal h3{margin:0 0 8px 0}
+    .k{color:var(--muted);font-size:12px}
+    .section{margin-top:12px;padding-top:10px;border-top:1px solid var(--line)}
+    .comment{padding:8px;border:1px solid var(--line);border-radius:10px;background:#0b1324;margin-bottom:8px}
+    .close{float:right}
+    @media (max-width:1280px){main{grid-template-columns:1fr}.grid{grid-template-columns:repeat(2,minmax(220px,1fr));}}
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <div class="title">Project Hub · Squad Board</div>
+      <div class="sub" id="meta">Conectando…</div>
+    </div>
+    <div class="toolbar">
+      <label for="projectSel" style="margin:0;color:#94a3b8">Proyecto</label>
+      <select id="projectSel" onchange="onProjectChange()"></select>
+      <input id="searchBox" placeholder="Buscar ticket (id, título, estado, assignee, tag)" oninput="applyFilter()" style="min-width:320px"/>
+      <button class="btn" onclick="clearSearch()">Limpiar</button>
+      <button class="btn" onclick="load()">Actualizar</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="panel">
+      <h3>Nuevo ticket</h3>
+      <label>Título</label>
+      <input id="f_title" placeholder="Ej: Mejorar CTR hero" style="width:100%"/>
+      <label>Descripción</label>
+      <textarea id="f_desc" placeholder="Detalle del ticket"></textarea>
+      <label>Prioridad</label>
+      <select id="f_prio" style="width:100%">
+        <option value="high">high</option>
+        <option value="medium" selected>medium</option>
+        <option value="low">low</option>
+        <option value="critical">critical</option>
+      </select>
+      <label>Asignar a (opcional)</label>
+      <select id="f_assignee" style="width:100%">
+        <option value="">Sin asignar</option>
+        <option>florencia</option><option>carbon</option><option>hykar</option><option>juan-cruz</option>
+      </select>
+      <label>Creado por</label>
+      <select id="f_by" style="width:100%">
+        <option selected>florencia</option><option>juan</option><option>carbon</option><option>hykar</option><option>juan-cruz</option>
+      </select>
+      <div style="height:10px"></div>
+      <button class="btn" style="width:100%" onclick="createTicket()">Crear ticket</button>
+      <div class="sub" id="flash" style="margin-top:10px"></div>
+    </section>
+
+    <section class="grid" id="board"></section>
+  </main>
+
+  <div class="modal-backdrop" id="detailModal" onclick="closeDetail(event)">
+    <div class="modal" onclick="event.stopPropagation()">
+      <button class="btn close" onclick="closeDetail()">Cerrar</button>
+      <div id="detailBody">Cargando…</div>
+    </div>
+  </div>
+
+<script>
+const STATUSES=[
+  {id:'todo',label:'To Do'},
+  {id:'in_progress',label:'In Progress'},
+  {id:'blocked',label:'Blocked'},
+  {id:'review',label:'Review'},
+  {id:'done',label:'Done'}
+];
+
+let __allTickets = [];
+let __currentProject = localStorage.getItem('project_hub.project') || 'default';
+
+function esc(s){return String(s||'').replace(/[&<>\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function flash(msg){document.getElementById('flash').textContent=msg;setTimeout(()=>document.getElementById('flash').textContent='',2600)}
+
+function withProject(path){
+  const sep = path.includes('?') ? '&' : '?';
+  return `${path}${sep}project=${encodeURIComponent(__currentProject)}`;
+}
+
+async function api(path,opts={}){
+  const res=await fetch(withProject(path),{headers:{'Content-Type':'application/json'},...opts});
+  const data=await res.json().catch(()=>({ok:false,error:'JSON inválido'}));
+  if(!res.ok) throw new Error(data.error||('HTTP '+res.status));
+  return data;
+}
+
+async function loadProjects(){
+  try{
+    const res = await fetch('/api/projects');
+    const data = await res.json();
+    const projects = data.projects || ['default'];
+    const sel = document.getElementById('projectSel');
+    sel.innerHTML = projects.map(p=>`<option value="${esc(p)}">${esc(p)}</option>`).join('');
+    if(!projects.includes(__currentProject)) __currentProject = projects[0] || 'default';
+    sel.value = __currentProject;
+  }catch(_){
+    const sel = document.getElementById('projectSel');
+    sel.innerHTML = '<option value="default">default</option>';
+    sel.value = 'default';
+    __currentProject='default';
+  }
+}
+
+function onProjectChange(){
+  __currentProject = document.getElementById('projectSel').value || 'default';
+  localStorage.setItem('project_hub.project', __currentProject);
+  load();
+}
+
+async function createTicket(){
+  const title=document.getElementById('f_title').value.trim();
+  const description=document.getElementById('f_desc').value.trim();
+  const priority=document.getElementById('f_prio').value;
+  const by=document.getElementById('f_by').value;
+  const assignee=document.getElementById('f_assignee').value || null;
+  if(!title||!description){flash('Completá título y descripción');return;}
+  try{
+    await api('/api/tickets',{method:'POST',body:JSON.stringify({title,description,priority,by,assignee})});
+    document.getElementById('f_title').value='';
+    document.getElementById('f_desc').value='';
+    flash('Ticket creado');
+    await load();
+  }catch(e){flash('Error: '+e.message)}
+}
+
+function nextStatusButtons(t){
+  const map={todo:['in_progress','blocked'],in_progress:['review','blocked'],blocked:['todo','in_progress'],review:['in_progress','done'],done:[]};
+  return (map[t.status]||[]).map(s=>`<button class="small" onclick="move(${t.id},'${s}')">${s}</button>`).join('');
+}
+
+async function move(id,status){
+  try{await api('/api/tickets/'+id,{method:'PATCH',body:JSON.stringify({status,by:'florencia'})});await load();}
+  catch(e){flash('Error: '+e.message)}
+}
+
+async function claim(id){
+  const agent=prompt('Asignar a agente (florencia|carbon|hykar|juan-cruz):','carbon');
+  if(!agent) return;
+  try{await api('/api/tickets/'+id+'/claim',{method:'POST',body:JSON.stringify({agent})});await load();}
+  catch(e){flash('Error: '+e.message)}
+}
+
+async function resolveTicket(id){
+  const resolution=prompt('Resumen de resolución:');
+  if(!resolution) return;
+  try{await api('/api/tickets/'+id,{method:'PATCH',body:JSON.stringify({resolution,by:'florencia'})});await load();}
+  catch(e){flash('Error: '+e.message)}
+}
+
+async function openDetail(id){
+  try{
+    const t = await api('/api/tickets/'+id);
+    const comments = (t.comments||[]).length
+      ? t.comments.map(c=>`<div class="comment"><div class="k">${esc(c.by)} · ${new Date(c.ts).toLocaleString()}</div><div>${esc(c.text)}</div></div>`).join('')
+      : '<div class="k">Sin comentarios</div>';
+
+    const resolution = t.resolution
+      ? `<div class="comment"><div class="k">${esc(t.resolution.by)} · ${new Date(t.resolution.ts).toLocaleString()}</div><div>${esc(t.resolution.text)}</div></div>`
+      : '<div class="k">Sin resolución</div>';
+
+    document.getElementById('detailBody').innerHTML = `
+      <h3>#${String(t.id).padStart(3,'0')} · ${esc(t.title)}</h3>
+      <div class="k">Estado: <b>${esc(t.status)}</b> · Prioridad: <b>${esc(t.priority)}</b> · Asignado: <b>${esc(t.assignee||'sin asignar')}</b></div>
+      <div class="k">Creado: <b>${t.created_at ? new Date(t.created_at).toLocaleString() : '-'}</b> · Última actualización: <b>${t.updated_at ? new Date(t.updated_at).toLocaleString() : '-'}</b></div>
+      <div class="section"><div class="k">Descripción</div><div>${esc(t.description||'')}</div></div>
+      <div class="section"><div class="k">Tags</div><div>${(t.tags||[]).map(esc).join(', ') || '-'}</div></div>
+      <div class="section"><div class="k">Colaboradores</div><div>${(t.collaborators||[]).map(esc).join(', ') || '-'}</div></div>
+      <div class="section"><div class="k">Bloqueo estructurado</div><div>${t.blocked_meta ? `Tipo: <b>${esc(t.blocked_meta.type||'-')}</b><br>Evidencia: ${esc(t.blocked_meta.evidence||'-')}<br>Definición de desbloqueo: ${esc(t.blocked_meta.unblock_definition||'-')}<br>Unblock owner: <b>${esc(t.blocked_meta.unblock_owner||'-')}</b><br>ETA: ${esc(t.blocked_meta.eta_unblock||'-')}` : 'No aplica'}</div></div>
+      <div class="section"><div class="k">Comentarios</div>${comments}</div>
+      <div class="section"><div class="k">Resolución</div>${resolution}</div>
+    `;
+    document.getElementById('detailModal').style.display='flex';
+  }catch(e){flash('Error detalle: '+e.message)}
+}
+
+function closeDetail(ev){
+  if(!ev || ev.target.id==='detailModal') document.getElementById('detailModal').style.display='none';
+}
+
+function card(t){
+  return `<article class="card" onclick="openDetail(${t.id})" title="Click para ver detalle">
+    <div class="row"><div class="t">#${String(t.id).padStart(3,'0')} · ${esc(t.title)}</div><span class="prio ${t.priority}">${t.priority}</span></div>
+    <div class="m">👤 ${esc(t.assignee||'sin asignar')} · ${esc(t.created_by||'-')}</div>
+    <div class="m">🤝 Colab: ${Array.isArray(t.collaborators) && t.collaborators.length ? esc(t.collaborators.join(', ')) : '-'}</div>
+    <div class="m">🕒 Creado: ${t.created_at ? new Date(t.created_at).toLocaleString() : '-'}</div>
+    <div class="m">♻️ Actualizado: ${t.updated_at ? new Date(t.updated_at).toLocaleString() : '-'}</div>
+    <div class="actions" onclick="event.stopPropagation()">
+      <button class="small" onclick="claim(${t.id})">Asignar</button>
+      ${nextStatusButtons(t)}
+      ${t.status!=='done'?`<button class="small" onclick="resolveTicket(${t.id})">Cerrar</button>`:''}
+    </div>
+  </article>`;
+}
+
+function matchesQuery(t, q){
+  if(!q) return true;
+  const blob = [
+    t.id,
+    t.title,
+    t.description,
+    t.status,
+    t.priority,
+    t.assignee,
+    t.created_by,
+    ...(t.tags||[])
+  ].join(' ').toLowerCase();
+  return blob.includes(q);
+}
+
+function renderBoard(tickets){
+  const q=(document.getElementById('searchBox')?.value||'').trim().toLowerCase();
+  const filtered=tickets.filter(t=>matchesQuery(t,q));
+  const board=document.getElementById('board');
+  board.innerHTML='';
+  for(const st of STATUSES){
+    const items=filtered.filter(t=>t.status===st.id);
+    const col=document.createElement('section');
+    col.className='col';
+    col.innerHTML=`<h4>${st.label} (${items.length})</h4><div class="list">${items.map(card).join('') || '<div class="m">Sin tareas</div>'}</div>`;
+    board.appendChild(col);
+  }
+  document.getElementById('meta').textContent=`Proyecto: ${__currentProject} · ${filtered.length}/${tickets.length} tickets visibles · ${new Date().toLocaleTimeString()}`;
+}
+
+function applyFilter(){
+  renderBoard(__allTickets);
+}
+
+function clearSearch(){
+  const sb=document.getElementById('searchBox');
+  if(sb) sb.value='';
+  applyFilter();
+}
+
+async function load(){
+  try{
+    const data=await api('/api/tickets');
+    __allTickets=data.tickets||[];
+    renderBoard(__allTickets);
+  }catch(e){document.getElementById('meta').textContent='Error: '+e.message}
+}
+
+async function init(){
+  await loadProjects();
+  await load();
+  setInterval(load,5000);
+}
+
+init();
+</script>
+</body>
+</html>

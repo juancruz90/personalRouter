@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OCOM Log Viewer</title>
+  <style>
+    :root{--bg:#0b1220;--panel:#0f172a;--line:#223047;--text:#e2e8f0;--muted:#94a3b8;--brand:#60a5fa;--ok:#34d399;--warn:#f59e0b;--crit:#f87171}
+    *{box-sizing:border-box} body{margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column}
+    header{padding:12px 18px;border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;background:rgba(11,18,32,.95)}
+    h1{margin:0;font-size:16px}
+    .toolbar{display:flex;gap:8px;align-items:center;margin-left:auto}
+    button,input,textarea{background:#0b1324;color:var(--text);border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-size:13px}
+    button{cursor:pointer}
+    main{display:grid;grid-template-columns:1fr 360px;gap:12px;padding:12px;overflow:hidden}
+    .panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;display:flex;flex-direction:column;overflow:hidden}
+    .panel h3{margin:0;padding:10px;border-bottom:1px solid var(--line);font-size:13px;color:#93c5fd}
+    .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:8px;border-bottom:1px solid var(--line)}
+    .stat{background:#0b1324;border:1px solid var(--line);border-radius:10px;padding:8px;text-align:center}
+    .stat .val{font-size:18px;font-weight:700}
+    .stat .lbl{font-size:11px;color:var(--muted)}
+    .content{flex:1;overflow:auto;padding:8px}
+    .accounts table{width:100%;border-collapse:collapse;font-size:12px}
+    .accounts th,.accounts td{border-bottom:1px solid var(--line);padding:6px;text-align:left}
+    .accounts th{color:var(--muted)}
+    .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px}
+    .ok{background:var(--ok)} .warn{background:var(--warn)} .crit{background:var(--crit)} .info{background:var(--brand)}
+    .stream pre{margin:0;white-space:pre-wrap;font-size:12px;line-height:1.4}
+    .event{padding:4px 0;border-bottom:1px dashed var(--line)}
+    .event .ts{color:var(--muted);margin-right:6px}
+    .badge{display:inline-block;background:#16233d;color:#93c5fd;padding:2px 6px;border-radius:99px;font-size:11px;margin-left:6px}
+    textarea{width:100%;height:120px;resize:vertical;margin-bottom:8px}
+  </style>
+</head>
+<body>
+<header>
+  <h1>OCOM Log Viewer</h1>
+  <div class="toolbar">
+    <input id="pasteBox" placeholder="Pegá los logs aquí (Ctrl+V) y hacé clic en Parsear">
+    <button onclick="parseAndRender()">Parsear</button>
+    <button onclick="clearAll()">Limpiar</button>
+    <button onclick="toggleDark()">🌓</button>
+  </div>
+</header>
+<main>
+  <section class="panel accounts">
+    <h3>Cuentas afectadas (click filtra)</h3>
+    <div class="content">
+      <table id="accountsTable">
+        <thead><tr><th>Estado</th><th>Email/Perfil</th><th>Proveedor</th><th>Rate limits</th><th>Rotaciones</th><th>Regla</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+  <section class="panel stream">
+    <h3>Stream de eventos</h3>
+    <div class="stats">
+      <div class="stat"><div class="val" id="countTotal">0</div><div class="lbl">Total</div></div>
+      <div class="stat"><div class="val" id="countRateLimits">0</div><div class="lbl">Rate limits</div></div>
+      <div class="stat"><div class="val" id="countRotations">0</div><div class="lbl">Rotaciones</div></div>
+      <div class="stat"><div class="val" id="uniqueAccounts">0</div><div class="lbl">Cuentas únicas</div></div>
+    </div>
+    <div class="content" id="stream"></div>
+  </section>
+</main>
+<script type="module">
+import { parseLogBlock, classifyEvent, shortProfile } from './src/parser.js';
+
+let allEvents = [];
+let profileEmailMap = {}; // sha256:... -> email (cached)
+let emailProfileMap = {}; // email -> sha256
+let filterProfile = null;
+
+// Cargar caché desde localStorage al inicio
+(function loadCache() {
+  try {
+    const cached = localStorage.getItem('ocom_profileEmailMap');
+    if (cached) profileEmailMap = JSON.parse(cached);
+    const emailCached = localStorage.getItem('ocom_emailProfileMap');
+    if (emailCached) emailProfileMap = JSON.parse(emailCached);
+  } catch (_) {}
+})();
+
+function saveCache() {
+  try {
+    localStorage.setItem('ocom_profileEmailMap', JSON.stringify(profileEmailMap));
+    localStorage.setItem('ocom_emailProfileMap', JSON.stringify(emailProfileMap));
+  } catch (_) {}
+}
+
+// Consultar endpoint /profiles/:sha256/meta del gateway
+async function fetchProfileMeta(hash) {
+  // hash esperado: string hexadecimal (sin prefijo 'sha256:')
+  if (!hash || profileEmailMap[hash]) return profileEmailMap[hash];
+  try {
+    const resp = await fetch(`http://127.0.0.1:3001/profiles/${hash}/meta`);
+    if (!resp.ok) return null;
+    const data = await resp.json();
+    if (data.ok && data.meta?.email) {
+      profileEmailMap[hash] = data.meta.email;
+      emailProfileMap[data.meta.email] = hash;
+      saveCache();
+      return data.meta.email;
+    }
+  } catch (_) {}
+  return null;
+}
+
+// Resolver email desde profile hash (con o sin prefijo)
+async function enrichEmail(ev) {
+  const p = ev.parsed;
+  // Si ya tiene email, usarlo y mapear
+  if (p.email) {
+    const profile = p.profile || (p.extra && p.extra.profile);
+    if (profile) {
+      const hash = profile.replace(/^sha256:/, '');
+      profileEmailMap[hash] = p.email;
+      emailProfileMap[p.email] = hash;
+    }
+    return;
+  }
+  // Buscar email en extra
+  if (p.extra && p.extra.email) {
+    p.email = p.extra.email;
+    const profile = p.profile || (p.extra && p.extra.profile);
+    if (profile) {
+      const hash = profile.replace(/^sha256:/, '');
+      profileEmailMap[hash] = p.email;
+      emailProfileMap[p.email] = hash;
+    }
+    return;
+  }
+  const profile = p.profile || (p.extra && p.extra.profile);
+  if (profile) {
+    const hash = profile.replace(/^sha256:/, '');
+    // Si ya está en caché, usarlo
+    if (profileEmailMap[hash]) {
+      p.email = profileEmailMap[hash];
+      return;
+    }
+    // Hacer fetch al endpoint (async, pero no blockeamos render)
+    fetchProfileMeta(hash).then((email) => {
+      if (email) {
+        p.email = email;
+        // Re-renderizar si ya tenemos todos los eventos
+        if (allEvents.length > 0) renderAll();
+      }
+    });
+  }
+}
+  const box = document.getElementById('pasteBox');
+  const raw = box.value;
+  if (!raw.trim()) return;
+  const events = parseLogBlock(raw);
+  // Enriquecer con email resolution
+  events.forEach(ev => enrichEmail(ev));
+  allEvents = events;
+  filterProfile = null;
+  renderAll();
+  box.value = '';
+}
+
+// Lógica de resolución de email
+function enrichEmail(ev) {
+  const p = ev.parsed;
+  // 1) Si ya tiene email en la línea (k=v), usarlo
+  if (p.email) {
+    // Mapear perfil -> email si hay perfil también
+    const profile = p.profile || (p.extra && p.extra.profile);
+    if (profile) {
+      profileEmailMap[profile] = p.email;
+      emailProfileMap[p.email] = profile;
+    }
+    return;
+  }
+  // 2) Buscar email en extra (pares clave=valor) - viene de generic_kv
+  if (p.extra && p.extra.email) {
+    p.email = p.extra.email;
+    const profile = p.profile || (p.extra && p.extra.profile);
+    if (profile) {
+      profileEmailMap[profile] = p.email;
+      emailProfileMap[p.email] = profile;
+    }
+    return;
+  }
+  // 3) Buscar en líneas anteriores del mismo runId o profile
+  const runId = p.runId;
+  const profile = p.profile || (p.extra && p.extra.profile);
+  // Buscar hacia atrás en allEvents (ya parseados) para encontrar algún evento con email para este runId/profile
+  if ((runId || profile) && allEvents.length > 0) {
+    for (let i = allEvents.length - 1; i >= 0; i--) {
+      const prev = allEvents[i];
+      if (prev.parsed.email) {
+        if (runId && prev.parsed.runId === runId) {
+          p.email = prev.parsed.email;
+          if (profile) profileEmailMap[profile] = p.email;
+          return;
+        }
+        if (profile && prev.parsed.profile === profile) {
+          p.email = prev.parsed.email;
+          profileEmailMap[profile] = p.email;
+          return;
+        }
+      }
+    }
+  }
+  // 4) Fallback: hash truncado visible
+  if (profile) {
+    p.displayProfile = shortProfile(profile);
+  }
+}
+
+function renderAll() {
+  renderStream();
+  renderAccounts();
+  renderStats();
+}
+
+function renderStream() {
+  const container = document.getElementById('stream');
+  container.innerHTML = '';
+  const filtered = filterProfile ? allEvents.filter(ev => (ev.parsed.profile === filterProfile || ev.parsed.email === filterProfile)) : allEvents;
+  for (const ev of filtered.slice().reverse()) { // más reciente arriba
+    const level = classifyEvent(ev.parsed);
+    const badge = ev.parsed.email ? `<span class="badge">${ev.parsed.email}</span>` : (ev.parsed.displayProfile ? `<span class="badge">${ev.parsed.displayProfile}</span>` : '');
+    const ts = ev.timestamp || '';
+    const line = document.createElement('div');
+    line.className = 'event';
+    line.innerHTML = `<span class="ts">[${ts}]</span><span class="lvl ${level}">${level}</span> ${escapeHtml(ev.raw)}${badge}`;
+    container.appendChild(line);
+  }
+}
+
+function renderAccounts() {
+  const tbody = document.querySelector('#accountsTable tbody');
+  tbody.innerHTML = '';
+  // Agrupar por email o profile
+  const groups = {};
+  for (const ev of allEvents) {
+    const p = ev.parsed;
+    let key = p.email || p.profile || p.displayProfile || 'unknown';
+    if (!groups[key]) {
+      groups[key] = { email: p.email || null, profile: p.profile || null, provider: p.provider || (p.extra && p.extra.provider) || '-', rateLimits: 0, rotations: 0, rule: '' };
+    }
+    // Contar rate limits (reason=rate_limit) y rotaciones (decision=rotate_profile)
+    if (p.reason === 'rate_limit' || (p.extra && p.extra.reason === 'rate_limit')) groups[key].rateLimits++;
+    if (p.decision === 'rotate_profile' || (p.extra && p.extra.decision === 'rotate_profile')) groups[key].rotations++;
+  }
+  // Ordenar por rate limits descendente
+  const rows = Object.entries(groups).sort((a,b) => b[1].rateLimits - a[1].rateLimits);
+  for (const [key, data] of rows) {
+    const tr = document.createElement('tr');
+    tr.style.cursor = 'pointer';
+    tr.onclick = () => {
+      if (filterProfile === key) {
+        filterProfile = null;
+      } else {
+        filterProfile = key;
+      }
+      renderAll();
+    };
+    const stateDots = data.rateLimits > 0 ? 'crit' : (data.rotations > 0 ? 'warn' : 'ok');
+    const label = data.email || shortProfile(data.profile) || key;
+    tr.innerHTML = `<td><span class="dot ${stateDots}"></span></td><td>${escapeHtml(label)}</td><td>${escapeHtml(data.provider)}</td><td>${data.rateLimits}</td><td>${data.rotations}</td><td>${escapeHtml(data.rule)}</td>`;
+    tbody.appendChild(tr);
+  }
+}
+
+function renderStats() {
+  const total = allEvents.length;
+  const rateLimits = allEvents.filter(ev => (ev.parsed.reason === 'rate_limit' || (ev.parsed.extra && ev.parsed.extra.reason === 'rate_limit'))).length;
+  const rotations = allEvents.filter(ev => (ev.parsed.decision === 'rotate_profile' || (ev.parsed.extra && ev.parsed.extra.decision === 'rotate_profile'))).length;
+  const unique = new Set(allEvents.map(ev => ev.parsed.email || ev.parsed.profile || ev.parsed.displayProfile || 'unknown')).size;
+  document.getElementById('countTotal').textContent = total;
+  document.getElementById('countRateLimits').textContent = rateLimits;
+  document.getElementById('countRotations').textContent = rotations;
+  document.getElementById('uniqueAccounts').textContent = unique;
+}
+
+function clearAll() {
+  allEvents = [];
+  profileEmailMap = {};
+  emailProfileMap = {};
+  filterProfile = null;
+  document.getElementById('pasteBox').value = '';
+  renderAll();
+}
+
+function toggleDark() {
+  // placeholder for future theme toggle
+}
+
+function escapeHtml(s) {
+  if (!s) return '';
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+</script>
+</body>
+</html>
