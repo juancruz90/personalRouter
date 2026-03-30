@@ -101,25 +101,25 @@ export function renderMonitoringBoard(): string {
     async function load() {
       try {
         const [rtRes, evRes] = await Promise.all([
-          fetch('/assignments'),
+          fetch('/accounts/runtime?provider=openai-codex'),
           fetch('/events/recent?limit=100')
         ]);
         const rt = await rtRes.json();
         const ev = await evRes.json();
 
-        // Runtime table: use rt.assignments
+        // Runtime table: use rt.accounts
         el.runtimeTable.innerHTML = '';
-        const runtimeRows = rt.assignments || [];
+        const runtimeRows = rt.accounts || [];
         runtimeRows.forEach(row => {
           const tr = document.createElement('tr');
-          const state = row.account?.status || 'unknown';
+          const state = row.runtime?.state || 'unknown';
           const level = state==='healthy'?'ok':(state==='degraded'?'warn':'crit');
-          const reset = row.account?.expiresAt || '-';
-          const score = row.account?.healthScore ?? '-';
-          const profileId = row.account?.profileId || row.agentSlug || '-';
+          const reset = row.runtime?.exhaustedUntil || '-';
+          const score = row.healthScore ?? '-';
+          const profileId = row.profileId || '-';
           const emailRegex = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
           const suffix = profileId.includes(':') ? profileId.slice(profileId.indexOf(':')+1) : profileId;
-          const email = emailRegex.test(suffix) ? suffix : (emailRegex.test(row.account?.accountId||'') ? row.account?.accountId : null);
+          const email = emailRegex.test(suffix) ? suffix : (emailRegex.test(row.accountId||'') ? row.accountId : null);
           const display = email ? email : '<span style="color:var(--muted);font-size:10px">' + profileId + '</span>';
           tr.innerHTML = '<td>' + display + '</td>' +
             '<td class="' + level + '">' + state + '</td>' +
