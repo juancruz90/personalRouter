@@ -30,7 +30,7 @@ export function renderMonitoringBoard(): string {
     <h2>Semáforo de cuentas (runtime)</h2>
     <table id="runtimeTable">
       <thead>
-        <tr><th>Email / Profile</th><th>Estado</th><th>Reset</th><th>Score</th></tr>
+        <tr><th>Email</th><th>Profile</th><th>Estado</th><th>Reset</th><th>Score</th></tr>
       </thead>
       <tbody></tbody>
     </table>
@@ -120,8 +120,10 @@ export function renderMonitoringBoard(): string {
           const emailRegex = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
           const suffix = profileId.includes(':') ? profileId.slice(profileId.indexOf(':')+1) : profileId;
           const email = emailRegex.test(suffix) ? suffix : (emailRegex.test(row.accountId||'') ? row.accountId : null);
-          const display = email ? email : '<span style="color:var(--muted);font-size:10px">' + profileId + '</span>';
-          tr.innerHTML = '<td>' + display + '</td>' +
+          const emailCell = email ? email : '<span style="color:var(--muted)">—</span>';
+          const profileCell = '<span style="color:var(--muted);font-size:10px">' + profileId + '</span>';
+          tr.innerHTML = '<td>' + emailCell + '</td>' +
+            '<td>' + profileCell + '</td>' +
             '<td class="' + level + '">' + state + '</td>' +
             '<td style="font-size:11px">' + reset + '</td>' +
             '<td>' + score + '</td>';
@@ -133,7 +135,7 @@ export function renderMonitoringBoard(): string {
         const events = ev.events || [];
         events.forEach(e => {
           const tr = document.createElement('tr');
-          const ts = formatTs(e.created_at);
+          const ts = formatTs(e.ts || e.created_at);
           const type = e.type || '-';
           const payload = shortPayload(e.payload || e.shortPayload || e);
           tr.innerHTML = '<td class="ts">' + ts + '</td><td><code>' + type + '</code></td><td style="font-size:11.5px;">' + payload + '</td>';
@@ -145,7 +147,7 @@ export function renderMonitoringBoard(): string {
     }
 
     load();
-    setInterval(load, 5000);
+    setInterval(load, 10000);
   </script>
 </body>
 </html>

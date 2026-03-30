@@ -1,0 +1,22 @@
+{
+  "meta": {
+    "workspace": "orquestacion"
+  },
+  "agents": {
+    "defaults": {
+      "heartbeat": {
+        "every": "2h"
+      }
+    }
+  },
+  "hooks": {
+    "internal": {
+      "enabled": true,
+      "entries": {
+        "boot-md": {
+          "enabled": true
+        }
+      }
+    }
+  }
+}

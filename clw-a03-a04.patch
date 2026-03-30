@@ -1,0 +1,68 @@
+--- /tmp/server_orig_clean.ts	2026-03-30 16:32:02.603445929 +0000
++++ /tmp/server_new_clean.ts	2026-03-30 16:32:02.609445927 +0000
+@@ -907,7 +907,16 @@
+       }
+     }
+ 
+-    const selected = rotationPool[0] as RouterCandidate;
++    // CLW-A03: Round-robin rotation — always prefer the account least recently used
++    // to spread auth load and avoid hammering a single account into rate-limit territory.
++    const rotationRanked = rotationPool
++      .map((candidate) => ({
++        candidate,
++        lastUsed: runtimeById[candidate.accountId]?.lastSuccessAt ?? '1970-01-01T00:00:00.000Z',
++      }))
++      .sort((a, b) => a.lastUsed.localeCompare(b.lastUsed));
++
++    const selected = rotationRanked[0].candidate;
+ 
+     return {
+       ...selection,
+@@ -1539,6 +1548,47 @@
+           healthScore,
+         });
+ 
++        // CLW-A04: Initialize runtime state for newly registered accounts so the router
++        // never treats them as unknown (undefined runtime passes the exhausted filter).
++        // Also probe quota immediately: if the account is already limited at registration
++        // time, mark it exhausted right away instead of letting it fail on first routing.
++        try {
++          const registrationProbe = await fetchWhamUsage(result.tokens.accessToken);
++          const alreadyExhausted =
++            registrationProbe.ok &&
++            (registrationProbe.limitReached === true ||
++              registrationProbe.allowed === false ||
++              (typeof registrationProbe.usedPercent === 'number' && registrationProbe.usedPercent >= 100));
++
++          await accountRuntime.recordEvent({
++            accountId: storedAccount.id,
++            outcome: alreadyExhausted ? 'exhausted' : 'success',
++            errorCode: alreadyExhausted ? 'quota_at_registration' : undefined,
++            errorMessage: alreadyExhausted
++              ? 'Account registered with quota already exhausted — skipped from routing pool'
++              : undefined,
++          });
++
++          if (alreadyExhausted) {
++            server.log.warn(
++              { provider: params.provider, accountId: storedAccount.id, profileId: storedAccount.profileId },
++              'oauth account stored but quota already exhausted — marked in runtime',
++            );
++          }
++        } catch (probeError) {
++          // Probe failure must never block registration. Initialize as healthy so the
++          // account enters the pool and gets properly evaluated on first real use.
++          try {
++            await accountRuntime.recordEvent({ accountId: storedAccount.id, outcome: 'success' });
++          } catch (_) {
++            // best-effort
++          }
++          server.log.warn(
++            { err: probeError, accountId: storedAccount.id },
++            'oauth registration quota probe failed — account initialized as healthy',
++          );
++        }
++
+         // Guardar mapeo profileKeyHash -> email para enriquecimiento de logs (P1)
+         if (inferredEmail) {
+           try {
