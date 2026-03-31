@@ -52,7 +52,7 @@
     {
       "id": 3,
       "priority": "critical",
-      "column": "backlog",
+      "column": "done",
       "title": "Implementar servidor proxy HTTP base",
       "module": "Proxy",
       "tags": ["proxy", "core"],
@@ -72,7 +72,7 @@
     {
       "id": 4,
       "priority": "critical",
-      "column": "backlog",
+      "column": "done",
       "title": "Implementar Auth Interceptor — captura de OAuth",
       "module": "Auth",
       "tags": ["auth", "core"],
@@ -92,7 +92,7 @@
     {
       "id": 5,
       "priority": "critical",
-      "column": "backlog",
+      "column": "done",
       "title": "Implementar refresh automático de tokens OAuth",
       "module": "Auth",
       "tags": ["auth", "core"],
@@ -112,7 +112,7 @@
     {
       "id": 6,
       "priority": "critical",
-      "column": "backlog",
+      "column": "done",
       "title": "Implementar Routing Engine — selección básica de cuenta",
       "module": "Routing",
       "tags": ["routing", "core"],
@@ -132,7 +132,7 @@
     {
       "id": 7,
       "priority": "critical",
-      "column": "backlog",
+      "column": "done",
       "title": "Implementar Backoff Manager — manejo de errores 429",
       "module": "Backoff",
       "tags": ["backoff", "core"],
@@ -293,7 +293,7 @@
     {
       "id": 15,
       "priority": "high",
-      "column": "backlog",
+      "column": "done",
       "title": "Implementar detección y manejo de cuentas duplicadas",
       "module": "Auth",
       "tags": ["auth", "data"],
