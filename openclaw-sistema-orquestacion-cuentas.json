@@ -1,0 +1,617 @@
+{
+  "project": "OpenClaw — Sistema de Orquestación de Cuentas",
+  "version": "1.0",
+  "total_tasks": 30,
+  "columns": ["backlog", "todo", "inprogress", "done"],
+  "priority_levels": {
+    "critical": "Bloqueante — sin esto el sistema no funciona",
+    "high": "Importante — necesario para producción",
+    "medium": "Valioso — mejora significativa",
+    "low": "Opcional — nice-to-have o documentación"
+  },
+  "tasks": [
+    {
+      "id": 1,
+      "priority": "critical",
+      "column": "done",
+      "title": "Inicializar proyecto y estructura de carpetas",
+      "module": "Infra",
+      "tags": ["infra", "setup"],
+      "dependencies": [],
+      "effort": "bajo",
+      "description": "Crear el repositorio base del sistema con la estructura de módulos: proxy/, auth/, routing/, backoff/, quota/, agents/, tracking/, monitor/, db/. Incluir .gitignore, README inicial y archivo de configuración base (config.json) con valores por defecto documentados.",
+      "acceptance_criteria": [
+        "Estructura de carpetas creada y commiteada",
+        "README con descripción del sistema y mapa de módulos",
+        "config.json base con todos los campos documentados con comentarios",
+        "package.json con dependencias iniciales listadas",
+        ".gitignore que excluye node_modules, .env, *.db, logs/"
+      ],
+      "notes": "Esta tarea es el punto de entrada. Todas las demás dependen de esta estructura."
+    },
+    {
+      "id": 2,
+      "priority": "critical",
+      "column": "backlog",
+      "title": "Configurar base de datos SQLite con esquema completo",
+      "module": "DB",
+      "tags": ["db", "infra"],
+      "dependencies": [1],
+      "effort": "medio",
+      "description": "Crear el esquema de base de datos con todas las tablas usando migraciones versionadas. Tablas: accounts (email, provider, status, cooldown_until, backoff_until, backoff_level, score, created_at, updated_at), agents (id, name, created_at), agent_account_mapping (agent_id, account_id, priority), request_logs (request_id UUID, agent_id, status, created_at), request_attempts (id, request_id, account_id, result, error_type, attempted_at).",
+      "acceptance_criteria": [
+        "Todas las tablas creadas con tipos de datos correctos",
+        "Índices en campos de búsqueda frecuente: status, agent_id, cooldown_until, request_id",
+        "Constraint UNIQUE(email, provider) en tabla accounts",
+        "Script de migración ejecutable (npm run migrate)",
+        "Script de reset de DB para entornos de test (npm run db:reset)",
+        "Migraciones versionadas con número de versión en el nombre de archivo"
+      ],
+      "notes": "Todos los módulos dependen de esta capa. El campo 'score' en accounts se usará en la tarea 26."
+    },
+    {
+      "id": 3,
+      "priority": "critical",
+      "column": "backlog",
+      "title": "Implementar servidor proxy HTTP base",
+      "module": "Proxy",
+      "tags": ["proxy", "core"],
+      "dependencies": [1],
+      "effort": "alto",
+      "description": "Crear el servidor proxy que intercepte todas las requests salientes de OpenClaw hacia los proveedores. Debe capturar método HTTP, headers completos, body y URL destino. Redirigir la request al Routing Engine y devolver la respuesta original sin modificar. No debe contener lógica de negocio. Usar http-proxy-middleware o node-http-proxy. Puerto configurable por env.",
+      "acceptance_criteria": [
+        "Proxy levanta en puerto configurable (env PROXY_PORT, default 8080)",
+        "Intercepta GET, POST, PUT, DELETE, PATCH",
+        "Pasa todos los headers originales sin modificar al router",
+        "Devuelve la respuesta del proveedor al cliente sin alterar",
+        "Log básico de cada request interceptada: método, URL, timestamp",
+        "Maneja errores de conexión sin crashear (proceso sigue corriendo)"
+      ],
+      "notes": "El proxy debe ser un thin layer. Si hay lógica, pertenece a otro módulo."
+    },
+    {
+      "id": 4,
+      "priority": "critical",
+      "column": "backlog",
+      "title": "Implementar Auth Interceptor — captura de OAuth",
+      "module": "Auth",
+      "tags": ["auth", "core"],
+      "dependencies": [2, 3],
+      "effort": "alto",
+      "description": "Interceptar el flujo OAuth de OpenClaw. Al detectar un request al callback de OAuth (/oauth/callback o similar), capturar el code de autorización, intercambiarlo por access_token y refresh_token en el endpoint del proveedor, extraer el email del usuario del JWT (campo 'email' o 'sub') o del endpoint /userinfo, y persistir la cuenta en la tabla accounts con status 'healthy' usando upsert (actualizar si ya existe el email+provider).",
+      "acceptance_criteria": [
+        "Callback OAuth interceptado correctamente identificando el proveedor",
+        "Email extraído del JWT decodificado o del userinfo endpoint",
+        "Cuenta guardada con upsert: actualiza si email+provider ya existe, inserta si no",
+        "access_token y refresh_token almacenados (cifrados, ver tarea 21)",
+        "expires_at calculado y guardado en la cuenta",
+        "Log de 'cuenta nueva capturada' o 'cuenta actualizada' con email (sin token)"
+      ],
+      "notes": "Si el cifrado (tarea 21) no está listo, guardar placeholder; no bloquear esta tarea. Coordinar el cifrado después."
+    },
+    {
+      "id": 5,
+      "priority": "critical",
+      "column": "backlog",
+      "title": "Implementar refresh automático de tokens OAuth",
+      "module": "Auth",
+      "tags": ["auth", "core"],
+      "dependencies": [4],
+      "effort": "alto",
+      "description": "Antes de ejecutar cada request, verificar si el access_token de la cuenta seleccionada está próximo a vencer (expires_at - now < 5 minutos). Si es así, usar el refresh_token para obtener un nuevo access_token del endpoint de token del proveedor. Actualizar la cuenta en DB con el nuevo token y el nuevo expires_at. Si el refresh falla (refresh_token inválido, revocado o expirado), marcar la cuenta como 'auth_error' y excluirla del pool de routing.",
+      "acceptance_criteria": [
+        "Token refrescado automáticamente cuando expira en menos de 5 minutos",
+        "Cuenta actualizada en DB con nuevo access_token y expires_at tras refresh exitoso",
+        "Cuenta marcada como auth_error si el refresh falla (401 del proveedor)",
+        "No interrumpe el flujo de la request en curso durante el refresh",
+        "Refresh no se dispara si el token tiene más de 5 minutos de vida",
+        "Tests con token expirado simulado que verifica el refresh"
+      ],
+      "notes": "El refresh debe ser transparente. El cliente no debe notar el refresh en la latencia."
+    },
+    {
+      "id": 6,
+      "priority": "critical",
+      "column": "backlog",
+      "title": "Implementar Routing Engine — selección básica de cuenta",
+      "module": "Routing",
+      "tags": ["routing", "core"],
+      "dependencies": [2],
+      "effort": "alto",
+      "description": "Crear el motor de routing que, dada una request entrante, obtiene todas las cuentas de DB, filtra solo las elegibles (status='healthy' Y cooldown_until < now Y status != 'auth_error' Y status != 'quota_exceeded'), las ordena por backoff_level ASC (menor nivel = prioridad), selecciona la primera, y devuelve la cuenta seleccionada para ejecutar la request.",
+      "acceptance_criteria": [
+        "Obtiene cuentas de DB en una sola consulta optimizada",
+        "Filtra correctamente: solo healthy, sin cooldown activo, sin auth_error",
+        "Ordena por backoff_level ASC como criterio primario",
+        "Devuelve null con motivo si no hay cuentas elegibles",
+        "Log de cuenta seleccionada con: email (enmascarado), backoff_level, motivo de selección",
+        "Tiempo de respuesta del router < 10ms para pools de hasta 100 cuentas"
+      ],
+      "notes": "Este es el corazón del sistema. Diseñarlo para ser extensible (tarea 26 agrega scoring)."
+    },
+    {
+      "id": 7,
+      "priority": "critical",
+      "column": "backlog",
+      "title": "Implementar Backoff Manager — manejo de errores 429",
+      "module": "Backoff",
+      "tags": ["backoff", "core"],
+      "dependencies": [2, 6],
+      "effort": "medio",
+      "description": "Al recibir un error 429 de un proveedor, el Backoff Manager debe: (1) clasificar el error como EXHAUSTED, (2) marcar la cuenta con status='exhausted', (3) calcular cooldown usando exponential backoff: delay = baseDelayMs * 2^backoff_level (máx nivel 6, configurables), (4) guardar cooldown_until = now + delay en DB, (5) incrementar backoff_level de la cuenta en DB.",
+      "acceptance_criteria": [
+        "Error 429 recibido del proveedor dispara el Backoff Manager",
+        "Status de la cuenta actualizado a 'exhausted' en DB",
+        "cooldown_until calculado correctamente: baseDelay * 2^level (ej: 5000 * 2^0 = 5s, 5000 * 2^1 = 10s)",
+        "backoff_level incrementado en 1 y guardado en DB",
+        "Nivel máximo respetado: si level >= maxLevel, no incrementar más",
+        "Tests de cálculo con level 0, 1, 2, 3, 6 verifican la fórmula"
+      ],
+      "notes": "Con baseDelay=5000ms y maxLevel=6: nivel 0=5s, 1=10s, 2=20s, 3=40s, 4=80s, 5=160s, 6=320s."
+    },
+    {
+      "id": 8,
+      "priority": "critical",
+      "column": "backlog",
+      "title": "Implementar fallback automático entre cuentas",
+      "module": "Routing",
+      "tags": ["routing", "core"],
+      "dependencies": [6, 7],
+      "effort": "alto",
+      "description": "Extender el Routing Engine con lógica de retry. Cuando una cuenta falla (429, auth_error, timeout, 5xx), marcar esa cuenta como 'usada en este ciclo', llamar al Backoff Manager si corresponde, y reintentar con la siguiente cuenta elegible del pool. Nunca reintentar la misma cuenta. Máximo de intentos = config.routing.maxRetries (default 3). Si todos los intentos fallan, devolver error estructurado con detalle de cada intento.",
+      "acceptance_criteria": [
+        "Reintento automático usa una cuenta diferente en cada intento",
+        "La misma cuenta jamás aparece dos veces en el mismo ciclo de request",
+        "Máximo de reintentos respetado (configurable, default 3)",
+        "Error estructurado al fallar todos: {error: 'ALL_ACCOUNTS_FAILED', attempts: [...], accounts_tried: [emails]}",
+        "Cada intento registrado en request_attempts antes de pasar al siguiente",
+        "El tiempo total de fallback no supera el timeout máximo configurado"
+      ],
+      "notes": "El pool de cuentas a intentar se filtra al inicio del ciclo, no en cada intento."
+    },
+    {
+      "id": 9,
+      "priority": "critical",
+      "column": "backlog",
+      "title": "Implementar Tracking System — registro de requests e intentos",
+      "module": "Tracking",
+      "tags": ["tracking", "core"],
+      "dependencies": [2, 6, 8],
+      "effort": "medio",
+      "description": "Registrar cada request en request_logs con UUID único (generado al inicio), agent_id si aplica, timestamp de inicio, y status final ('success' o 'failed') actualizado al terminar. Para cada intento del ciclo de fallback, insertar en request_attempts: request_id FK, account_id usada, resultado ('success'/'fail'), error_type categorizado (EXHAUSTED/AUTH_ERROR/TIMEOUT/SERVER_ERROR/RATE_LIMITED), timestamp del intento.",
+      "acceptance_criteria": [
+        "Cada request tiene un UUID v4 único en request_logs generado al recibirse",
+        "Status final actualizado a 'success' o 'failed' al terminar el ciclo",
+        "Cada intento registrado en request_attempts con todos los campos",
+        "error_type categorizado correctamente según el error recibido",
+        "Las escrituras a tracking son asíncronas y no bloquean la respuesta al cliente",
+        "Índice en request_id para consultas rápidas de los intentos de una request"
+      ],
+      "notes": "Usar fire-and-forget para las escrituras de tracking para no añadir latencia."
+    },
+    {
+      "id": 10,
+      "priority": "high",
+      "column": "backlog",
+      "title": "Implementar reset automático de cuentas en cooldown",
+      "module": "Backoff",
+      "tags": ["backoff", "scheduler"],
+      "dependencies": [2, 7],
+      "effort": "medio",
+      "description": "Crear un job scheduler (cron o setInterval) que cada 60 segundos consulte la tabla accounts buscando registros con status='exhausted' Y cooldown_until < now. Para cada una, actualizar status a 'healthy'. Opcionalmente: reducir el backoff_level en 1 si la cuenta lleva más de 10 minutos sin fallar (backoff decay). Loguear cada cuenta recuperada.",
+      "acceptance_criteria": [
+        "Job ejecuta cada 60 segundos con jitter de ±5s para evitar thundering herd",
+        "Detecta correctamente cuentas con cooldown expirado",
+        "Actualiza status a 'healthy' en DB",
+        "No modifica cuentas con cooldown_until en el futuro",
+        "Log de cada cuenta recuperada con su email (enmascarado) y nivel de backoff actual",
+        "Job no crashea si DB no responde; reintenta en el siguiente ciclo"
+      ],
+      "notes": "El jitter evita que muchas cuentas se recuperen exactamente al mismo segundo bajo carga."
+    },
+    {
+      "id": 11,
+      "priority": "high",
+      "column": "backlog",
+      "title": "Implementar clasificador de errores",
+      "module": "Routing",
+      "tags": ["routing", "errors"],
+      "dependencies": [6],
+      "effort": "medio",
+      "description": "Crear un módulo ErrorClassifier separado que recibe el objeto de respuesta del proveedor (statusCode, headers, body JSON) y devuelve un objeto estandarizado: {type: 'EXHAUSTED'|'AUTH_ERROR'|'TIMEOUT'|'SERVER_ERROR'|'RATE_LIMITED'|'SUCCESS', retryAfterMs?: number, message: string}. Reglas: 429 → EXHAUSTED, 401/403/invalid_token → AUTH_ERROR, timeout de red → TIMEOUT, 5xx → SERVER_ERROR, 429 con Retry-After → RATE_LIMITED.",
+      "acceptance_criteria": [
+        "HTTP 429 sin Retry-After → type: EXHAUSTED",
+        "HTTP 429 con Retry-After → type: RATE_LIMITED con retryAfterMs calculado",
+        "HTTP 401 o 403 → type: AUTH_ERROR",
+        "HTTP 500, 502, 503, 504 → type: SERVER_ERROR",
+        "Error de red (ECONNREFUSED, ETIMEDOUT) → type: TIMEOUT",
+        "HTTP 2xx → type: SUCCESS",
+        "retryAfterMs extrae correctamente ambos formatos: segundos y HTTP date"
+      ],
+      "notes": "Módulo puro (sin side effects). El Backoff Manager consume su output."
+    },
+    {
+      "id": 12,
+      "priority": "high",
+      "column": "backlog",
+      "title": "Implementar Agent Mapper — CRUD de agentes",
+      "module": "Agents",
+      "tags": ["agents"],
+      "dependencies": [2],
+      "effort": "medio",
+      "description": "Crear el módulo de gestión de agentes con las siguientes operaciones: createAgent(name) → {id, name, created_at}, listAgents() → [{id, name, accounts: [...]}], deleteAgent(id) (solo el registro, no las cuentas ni logs), assignAccount(agentId, accountId, priority), unassignAccount(agentId, accountId), getAgentAccounts(agentId) → [{account, priority}].",
+      "acceptance_criteria": [
+        "createAgent genera UUID único y lo persiste",
+        "listAgents incluye las cuentas asignadas a cada agente con su prioridad",
+        "deleteAgent elimina el agente y sus mappings pero NO las cuentas ni los request_logs",
+        "assignAccount respeta la columna priority (entero, 1 = mayor prioridad)",
+        "unassignAccount elimina solo el mapping específico",
+        "Error claro si se intenta asignar una cuenta que no existe"
+      ],
+      "notes": "Priority 1 es la primera opción. Si dos cuentas tienen igual prioridad, ordenar por backoff_level."
+    },
+    {
+      "id": 13,
+      "priority": "high",
+      "column": "backlog",
+      "title": "Integrar routing por agente en el Routing Engine",
+      "module": "Routing",
+      "tags": ["routing", "agents"],
+      "dependencies": [6, 12],
+      "effort": "alto",
+      "description": "Extender el Routing Engine para que acepte un agentId opcional. Si se provee agentId: obtener las cuentas asignadas a ese agente (en orden de prioridad del mapping), filtrar las elegibles, intentar el routing. Si no quedan cuentas elegibles del agente Y config.routing.fallbackToGlobal=true, hacer fallback al pool global. Si no se provee agentId: usar el pool global directamente.",
+      "acceptance_criteria": [
+        "Request con agentId en header X-Agent-Id usa cuentas del agente primero",
+        "Orden de prioridad del mapping respetado (campo priority ASC)",
+        "Fallback al pool global cuando fallbackToGlobal=true y no hay elegibles en el agente",
+        "Sin fallback cuando fallbackToGlobal=false: devuelve error si el agente no tiene elegibles",
+        "agentId registrado en request_logs",
+        "Request sin X-Agent-Id usa pool global sin buscar en mappings"
+      ],
+      "notes": "El header X-Agent-Id es añadido por OpenClaw o por el usuario al configurar el agente."
+    },
+    {
+      "id": 14,
+      "priority": "high",
+      "column": "backlog",
+      "title": "Implementar Quota Engine — estimación de consumo de tokens",
+      "module": "Quota",
+      "tags": ["quota"],
+      "dependencies": [2, 9],
+      "effort": "alto",
+      "description": "Crear el Quota Engine que: (1) tras cada request exitosa, extrae el uso de tokens del body de respuesta (campo usage.total_tokens si el proveedor lo devuelve, o estima por longitud del body en chars / 4 si no), (2) acumula el consumo en una tabla quota_usage (account_id, date, tokens_used), (3) compara contra el límite configurable por cuenta o global, (4) si tokens_used > 80% del límite, actualiza status a 'quota_warning', (5) si supera el 100%, actualiza a 'quota_exceeded' y la excluye del routing.",
+      "acceptance_criteria": [
+        "Tokens extraídos del response body si el campo usage.total_tokens existe",
+        "Estimación por longitud de body si usage no está disponible",
+        "Consumo acumulado en DB por cuenta y por día (fecha UTC)",
+        "Status 'quota_warning' aplicado al superar el 80% del límite",
+        "Status 'quota_exceeded' aplicado al superar el 100%",
+        "Cuentas con quota_exceeded excluidas del routing (igual que exhausted)"
+      ],
+      "notes": "La tabla quota_usage debe tener un reset diario a medianoche UTC."
+    },
+    {
+      "id": 15,
+      "priority": "high",
+      "column": "backlog",
+      "title": "Implementar detección y manejo de cuentas duplicadas",
+      "module": "Auth",
+      "tags": ["auth", "data"],
+      "dependencies": [4],
+      "effort": "bajo",
+      "description": "Asegurar que el sistema no cree cuentas duplicadas. Al interceptar un nuevo OAuth: verificar si existe (email, provider) en DB. Si existe: actualizar access_token, refresh_token y expires_at (no insertar nuevo registro). La restricción UNIQUE(email, provider) en DB (tarea 2) es el backstop. Además, detectar si el mismo access_token llega para dos emails diferentes (posible reutilización de token) y alertar con un log de advertencia.",
+      "acceptance_criteria": [
+        "Upsert correcto: INSERT OR REPLACE o UPDATE según exista",
+        "Constraint UNIQUE(email, provider) en DB previene duplicados a nivel de datos",
+        "Log 'cuenta actualizada' vs 'cuenta nueva' con email enmascarado",
+        "No se rompe el flujo OAuth si la cuenta ya existe",
+        "Alerta en log si el mismo token llega para emails diferentes",
+        "Tests: insertar misma cuenta dos veces resulta en 1 registro, no 2"
+      ],
+      "notes": "Email enmascarado = primeros 3 chars + *** + dominio. Ej: use***@gmail.com."
+    },
+    {
+      "id": 16,
+      "priority": "high",
+      "column": "backlog",
+      "title": "Implementar manejo de header Retry-After",
+      "module": "Backoff",
+      "tags": ["backoff", "routing"],
+      "dependencies": [7, 11],
+      "effort": "bajo",
+      "description": "Cuando el ErrorClassifier detecta un header Retry-After en la respuesta 429, el Backoff Manager debe usar ese valor como cooldown en lugar del exponential backoff calculado. El header puede venir en dos formatos: (1) número de segundos ('Retry-After: 60'), (2) fecha HTTP ('Retry-After: Wed, 21 Oct 2025 07:28:00 GMT'). Si el valor calculado supera el máximo configurado (maxBackoffMs), usar el máximo.",
+      "acceptance_criteria": [
+        "Header Retry-After detectado y parseado correctamente",
+        "Formato de segundos: cooldown_until = now + (Retry-After segundos * 1000)",
+        "Formato HTTP date: cooldown_until = Date.parse(Retry-After value)",
+        "Si Retry-After > maxBackoffMs: usar maxBackoffMs",
+        "Log 'usando Retry-After: Xs' en lugar del backoff calculado",
+        "Tests con ambos formatos de Retry-After"
+      ],
+      "notes": "El Retry-After del proveedor es más preciso que nuestro exponential backoff. Siempre respetarlo cuando está presente."
+    },
+    {
+      "id": 17,
+      "priority": "high",
+      "column": "backlog",
+      "title": "Crear API REST interna de administración",
+      "module": "Admin API",
+      "tags": ["api", "admin"],
+      "dependencies": [2, 12],
+      "effort": "alto",
+      "description": "Exponer una API REST interna (en puerto separado del proxy, ej: 8081) con los siguientes endpoints: GET /accounts (lista todas las cuentas con estado), POST /accounts/:id/refresh (forzar refresh de token), GET /agents (lista agentes con cuentas asignadas), POST /agents (crear agente), DELETE /agents/:id, POST /agents/:id/accounts (asignar cuenta), DELETE /agents/:id/accounts/:accountId (desasignar), GET (resumen del sistema), GET /logs?limit=50&offset=0 (request logs paginados). Todos los endpoints protegidos por API key en header X-Admin-Key.",
+      "acceptance_criteria": [
+        "API en puerto separado del proxy (ADMIN_PORT env, default 8081)",
+        "Todos los endpoints documentados con request/response de ejemplo",
+        "Auth: X-Admin-Key header requerido, 401 si ausente o incorrecto",
+        "GET /accounts incluye: email enmascarado, provider, status, backoff_level, cooldown_remaining_ms",
+        "GET cuentas por estado, total_requests_24h, success_rate_24h",
+        "GET /logs con paginación (limit, offset) y filtro por status opcional"
+      ],
+      "notes": "La API debe correr en un proceso separado o en el mismo proceso pero en puerto diferente."
+    },
+    {
+      "id": 18,
+      "priority": "medium",
+      "column": "backlog",
+      "title": "Implementar Monitor UI — vista de estado en tiempo real",
+      "module": "Monitor",
+      "tags": ["ui", "monitor"],
+      "dependencies": [17],
+      "effort": "alto",
+      "description": "Crear una interfaz web embebida accesible en /monitor del puerto de administración. Muestra: tabla de cuentas con columnas (email enmascarado, proveedor, status con color, backoff_level, cooldown restante en countdown, cuota usada). Tabla de últimos 20 requests (id, agente, status, timestamp, cuenta usada, intentos). Resumen superior con métricas: cuentas healthy, en cooldown, requests última hora, tasa de éxito. Auto-refresh cada 30 segundos.",
+      "acceptance_criteria": [
+        "UI accesible en /monitor sin autenticación adicional (la API ya está protegida)",
+        "Tabla de cuentas con status coloreado: verde=healthy, rojo=exhausted, amarillo=cooling_down",
+        "Countdown del cooldown restante en tiempo real (actualiza cada segundo en el cliente)",
+        "Tabla de últimos 20 requests con todos los campos",
+        "Métricas de resumen en tarjetas en la parte superior",
+        "Auto-refresh del servidor cada 30s sin parpadeo de la UI"
+      ],
+      "notes": "HTML/CSS/JS vanilla. No usar frameworks pesados. Debe cargar rápido."
+    },
+    {
+      "id": 19,
+      "priority": "medium",
+      "column": "backlog",
+      "title": "Implementar Monitor UI — gestión de agentes",
+      "module": "Monitor",
+      "tags": ["ui", "agents"],
+      "dependencies": [17, 18],
+      "effort": "alto",
+      "description": "Extender el Monitor UI con una sección 'Agentes' navegable desde un tab. Muestra: lista de agentes con nombre y número de cuentas asignadas. Al hacer click en un agente: ver las cuentas asignadas con su prioridad. Acciones disponibles desde UI: crear nuevo agente (formulario con nombre), asignar cuenta a agente (selector de cuentas disponibles + campo de prioridad), desasignar cuenta (botón en la lista). Todos los cambios usan la API de administración.",
+      "acceptance_criteria": [
+        "Tab 'Agentes' en el Monitor UI",
+        "Lista de agentes con nombre y count de cuentas",
+        "Vista detalle de un agente con sus cuentas y prioridades",
+        "Formulario de creación de agente funcional",
+        "Asignar cuenta a agente desde UI con selector y campo de prioridad",
+        "Desasignar cuenta con confirmación",
+        "Cambios reflejados inmediatamente en routing (sin reiniciar el servicio)"
+      ],
+      "notes": "Los cambios en asignaciones son inmediatos porque el router consulta DB en cada request."
+    },
+    {
+      "id": 20,
+      "priority": "medium",
+      "column": "backlog",
+      "title": "Implementar logs estructurados con niveles de verbosidad",
+      "module": "Infra",
+      "tags": ["observability", "infra"],
+      "dependencies": [],
+      "effort": "medio",
+      "description": "Reemplazar todos los console.log del sistema por un logger estructurado que emite JSON. Niveles: debug, info, warn, error. Configurable por variable de entorno LOG_LEVEL (default: info). Cada entrada de log debe incluir: timestamp ISO 8601, nivel, módulo de origen, mensaje descriptivo, datos adicionales relevantes. NUNCA incluir tokens OAuth o API keys completos en los logs. Implementar rotación básica de archivos (máx 10MB por archivo, máx 5 archivos).",
+      "acceptance_criteria": [
+        "Logger configurado con 4 niveles: debug, info, warn, error",
+        "Todos los módulos importan y usan el logger (no console.log directo)",
+        "Output en formato JSON con todos los campos requeridos",
+        "LOG_LEVEL='debug' muestra todo; LOG_LEVEL='error' solo errores",
+        "Tokens y API keys nunca aparecen en texto plano en logs",
+        "Archivos de log rotan al superar 10MB, máximo 5 archivos históricos"
+      ],
+      "notes": "Implementar antes de que el sistema vaya a producción. Los logs son la primera herramienta de debugging."
+    },
+    {
+      "id": 21,
+      "priority": "medium",
+      "column": "backlog",
+      "title": "Implementar almacenamiento cifrado de tokens OAuth",
+      "module": "Security",
+      "tags": ["security", "auth"],
+      "dependencies": [4, 5],
+      "effort": "medio",
+      "description": "Cifrar access_token y refresh_token antes de persistirlos en DB usando AES-256-GCM. La clave de cifrado se deriva de la variable de entorno ENCRYPTION_KEY (mínimo 32 chars). El IV (vector de inicialización) debe ser aleatorio por cada cifrado y guardarse junto al dato cifrado (formato: iv:ciphertext en base64). El sistema no debe iniciar si ENCRYPTION_KEY no está configurada. Si la clave cambia entre reinicios, los tokens existentes serán indescifrables (error claro, no crash).",
+      "acceptance_criteria": [
+        "access_token y refresh_token cifrados en DB (columnas en base64, no texto plano)",
+        "Descifrado transparente al leer: el módulo de Auth devuelve el token en claro",
+        "Sistema lanza error y no inicia si ENCRYPTION_KEY no está definida en env",
+        "IV aleatorio por cada cifrado (no reutilizar IV)",
+        "Error descriptivo (no crash) si se intenta descifrar con clave incorrecta: 'Token encryption key mismatch — re-authenticate account'",
+        "Tests de cifrado/descifrado con valores conocidos"
+      ],
+      "notes": "Usar crypto nativo de Node.js (módulo 'crypto'). No añadir librerías externas para esto."
+    },
+    {
+      "id": 22,
+      "priority": "medium",
+      "column": "backlog",
+      "title": "Implementar health check endpoint del proxy",
+      "module": "Infra",
+      "tags": ["infra", "monitoring"],
+      "dependencies": [3],
+      "effort": "bajo",
+      "description": "Agregar endpoint GET /health al proxy (mismo puerto que el proxy) que devuelva en JSON: status ('ok' o 'degraded'), counts de cuentas por estado ({healthy: N, exhausted: N, cooling_down: N, auth_error: N}), total de agentes, uptime del proceso en segundos, timestamp. Debe responder en < 100ms. Devuelve HTTP 200 si healthy > 0, HTTP 503 si no hay cuentas saludables o si DB no responde.",
+      "acceptance_criteria": [
+        "GET /health responde con JSON completo en < 100ms",
+        "Conteo de cuentas por estado correcto y actualizado",
+        "HTTP 200 si hay al menos una cuenta healthy",
+        "HTTP 503 si no hay cuentas healthy o DB no responde",
+        "Uptime del proceso en segundos incluido",
+        "Monitor UI consume este endpoint para el indicador de estado general"
+      ],
+      "notes": "Útil para load balancers, orquestadores (Docker healthcheck) y el Monitor UI."
+    },
+    {
+      "id": 23,
+      "priority": "medium",
+      "column": "backlog",
+      "title": "Implementar manejo de timeouts de red",
+      "module": "Routing",
+      "tags": ["routing", "resilience"],
+      "dependencies": [8, 11],
+      "effort": "medio",
+      "description": "Configurar timeouts explícitos para las requests a proveedores: CONNECTION_TIMEOUT (default 5s) para establecer la conexión TCP, RESPONSE_TIMEOUT (default 30s) para recibir la respuesta completa. Si ocurre timeout: clasificar como TIMEOUT (no EXHAUSTED), no incrementar backoff_level (el problema puede ser de red). Mantener un contador de timeouts consecutivos por cuenta en memoria. Si una cuenta supera TIMEOUT_THRESHOLD (default 3) timeouts seguidos, marcarla como 'unreliable' temporalmente (cooldown de 60s).",
+      "acceptance_criteria": [
+        "CONNECTION_TIMEOUT y RESPONSE_TIMEOUT configurables desde env",
+        "Timeout de red clasificado como TIMEOUT, no EXHAUSTED ni AUTH_ERROR",
+        "backoff_level no se incrementa por timeouts",
+        "Contador de timeouts consecutivos por cuenta en memoria",
+        "Cuenta marcada como 'unreliable' tras superar TIMEOUT_THRESHOLD",
+        "Estado 'unreliable' registrado en request_attempts con error_type='TIMEOUT'"
+      ],
+      "notes": "Separar la causa 'red lenta' de 'quota agotada' es crítico para no penalizar cuentas injustamente."
+    },
+    {
+      "id": 24,
+      "priority": "medium",
+      "column": "backlog",
+      "title": "Centralizar configuración en variables de entorno",
+      "module": "Infra",
+      "tags": ["config", "infra"],
+      "dependencies": [1],
+      "effort": "bajo",
+      "description": "Toda la configuración del sistema debe cargarse desde variables de entorno al iniciar, con valores por defecto razonables. Variables requeridas: ENCRYPTION_KEY, ADMIN_API_KEY. Variables opcionales con defaults: PROXY_PORT=8080, ADMIN_PORT=8081, LOG_LEVEL=info, DB_PATH=./data/openclaw.db, MAX_RETRIES=3, BACKOFF_BASE_DELAY_MS=5000, BACKOFF_MAX_LEVEL=6, FALLBACK_TO_GLOBAL=true, QUOTA_WARNING_THRESHOLD=0.8, CONNECTION_TIMEOUT_MS=5000, RESPONSE_TIMEOUT_MS=30000, ALERT_WEBHOOK_URL=(vacío). Crear .env.example con todas documentadas.",
+      "acceptance_criteria": [
+        ".env.example con todas las variables, sus tipos, valores por defecto y descripción",
+        "Config cargada y validada al iniciar el proceso (no lazy)",
+        "Sistema no inicia con error claro si ENCRYPTION_KEY o ADMIN_API_KEY están vacías",
+        "Validación de tipos: números son números, booleanos son booleanos",
+        "README actualizado con tabla de variables de configuración",
+        "Ningún valor hardcodeado en el código (salvo defaults en el módulo de config)"
+      ],
+      "notes": "Usar dotenv para cargar .env en desarrollo. En producción, inyectar directamente en el entorno."
+    },
+    {
+      "id": 25,
+      "priority": "medium",
+      "column": "backlog",
+      "title": "Escribir tests de integración para flujos críticos",
+      "module": "Testing",
+      "tags": ["testing"],
+      "dependencies": [3, 4, 5, 6, 7, 8, 9, 10, 12, 13],
+      "effort": "alto",
+      "description": "Tests end-to-end que simulan el comportamiento completo usando mocks de proveedores (sin internet real). Flujos a cubrir: (1) request exitosa con una sola cuenta, (2) fallback tras 429 en cuenta A, éxito en cuenta B, (3) todas las cuentas en 429, error ALL_ACCOUNTS_FAILED, (4) OAuth interceptado y cuenta persistida correctamente, (5) reset de cooldown tras expirar el timer, (6) routing por agente usa solo cuentas asignadas, (7) refresh de token expirado, (8) timeout de red no incrementa backoff.",
+      "acceptance_criteria": [
+        "Test 1: request exitosa pasa, 1 intento registrado en tracking",
+        "Test 2: fallback correcto, 2 intentos registrados, cuenta A marcada exhausted",
+        "Test 3: error estructurado devuelto, 3 intentos registrados",
+        "Test 4: OAuth mock guarda cuenta en DB con campos correctos",
+        "Test 5: reset job actualiza status a healthy",
+        "Test 6: agente usa solo sus cuentas asignadas",
+        "Test 7: token expirado refrescado antes de la request",
+        "Test 8: timeout no modifica backoff_level"
+      ],
+      "notes": "Todos los tests corren sin internet. Usar nock o similar para mockear las respuestas HTTP de los proveedores."
+    },
+    {
+      "id": 26,
+      "priority": "medium",
+      "column": "backlog",
+      "title": "Implementar scoring dinámico de cuentas",
+      "module": "Routing",
+      "tags": ["routing", "optimization"],
+      "dependencies": [6, 14, 23],
+      "effort": "alto",
+      "description": "Reemplazar el ordenamiento simple por backoff_level con un score compuesto. Fórmula: score = (1 - backoff_level/6) * 0.4 + (1 - quota_used_ratio) * 0.4 + (1 - timeout_ratio) * 0.2. Donde quota_used_ratio = tokens_usados_hoy / límite diario, timeout_ratio = timeouts_consecutivos / TIMEOUT_THRESHOLD. Recalcular score después de cada request y actualizar en DB. Usar score DESC como criterio de ordenamiento del router.",
+      "acceptance_criteria": [
+        "Score calculado correctamente para cada cuenta con la fórmula documentada",
+        "Pesos configurables en config (0.4 / 0.4 / 0.2 como defaults)",
+        "Score actualizado en DB tras cada request (éxito o fallo)",
+        "Router ordena por score DESC al seleccionar cuentas",
+        "Score visible en la tabla del Monitor UI",
+        "Documentación de la fórmula en un comentario en el código"
+      ],
+      "notes": "Esta es la tarea de 'optimización inteligente' del roadmap Fase 4. Los pesos permiten ajustar la estrategia de routing."
+    },
+    {
+      "id": 27,
+      "priority": "low",
+      "column": "backlog",
+      "title": "Implementar exportación de logs a CSV",
+      "module": "Admin API",
+      "tags": ["monitoring", "admin"],
+      "dependencies": [17],
+      "effort": "bajo",
+      "description": "Agregar endpoint GET /logs/export a la API de administración. Parámetros: from (ISO date), to (ISO date), format=csv. Devuelve los request_logs y request_attempts del rango en formato CSV con headers descriptivos. Límite de 10.000 filas por exportación. Header Content-Disposition: attachment para descarga directa. Todas las fechas en ISO 8601 UTC.",
+      "acceptance_criteria": [
+        "Endpoint GET /logs/export funciona con rango de fechas from y to",
+        "CSV con headers: request_id, agent_id, status, account_email, error_type, timestamp, duration_ms",
+        "Límite de 10.000 filas respetado con mensaje si se supera",
+        "Content-Disposition: attachment; filename=openclaw-logs-{date}.csv",
+        "Fechas en ISO 8601 UTC",
+        "Requiere X-Admin-Key como el resto de la API"
+      ],
+      "notes": "Útil para análisis externo en Excel o herramientas de BI."
+    },
+    {
+      "id": 28,
+      "priority": "low",
+      "column": "backlog",
+      "title": "Implementar modo dry-run para el router",
+      "module": "Routing",
+      "tags": ["testing", "routing"],
+      "dependencies": [6],
+      "effort": "bajo",
+      "description": "Agregar soporte para el header X-Dry-Run: true en el proxy. Cuando está presente, el router ejecuta toda la lógica de selección de cuenta (filtrado, scoring, ordenamiento) pero NO hace la request real al proveedor. Devuelve como respuesta HTTP 200 con JSON: {dry_run: true, selected_account: {email_masked, score, backoff_level}, eligible_accounts: N, routing_reason: string}. No registra en request_logs (o lo marca como dry_run=true).",
+      "acceptance_criteria": [
+        "Header X-Dry-Run: true activa el modo sin ejecutar la request real",
+        "Respuesta incluye cuenta seleccionada con email enmascarado y score",
+        "Respuesta incluye número de cuentas elegibles",
+        "routing_reason explica por qué se seleccionó esa cuenta",
+        "No consume cuota ni afecta el estado de las cuentas",
+        "Registrado en logs con flag dry_run=true para debugging"
+      ],
+      "notes": "Herramienta invaluable para debuggear el routing sin side effects."
+    },
+    {
+      "id": 29,
+      "priority": "low",
+      "column": "backlog",
+      "title": "Implementar alertas por webhook al fallar todas las cuentas",
+      "module": "Monitoring",
+      "tags": ["monitoring", "alerts"],
+      "dependencies": [8, 24],
+      "effort": "bajo",
+      "description": "Cuando el router agota todos los reintentos y devuelve ALL_ACCOUNTS_FAILED, enviar un HTTP POST al webhook configurado en ALERT_WEBHOOK_URL (si está definido). Payload JSON: {event: 'all_accounts_failed', timestamp: ISO, agent_id: string|null, request_id: string, accounts_tried: [emails_masked], last_error_type: string}. Reintentar el webhook hasta 3 veces con delay de 1s si falla. No bloquear ni retrasar la respuesta de error al cliente.",
+      "acceptance_criteria": [
+        "Webhook disparado solo cuando ALERT_WEBHOOK_URL está configurado",
+        "Payload completo con todos los campos requeridos",
+        "Emails enmascarados en accounts_tried",
+        "Hasta 3 reintentos del webhook con 1s de espera entre intentos",
+        "Envío asíncrono: no añade latencia a la respuesta de error al cliente",
+        "Log de éxito/fallo del webhook"
+      ],
+      "notes": "Compatible con Slack incoming webhooks, Discord, PagerDuty, y cualquier receptor HTTP."
+    },
+    {
+      "id": 30,
+      "priority": "low",
+      "column": "backlog",
+      "title": "Documentar API, arquitectura y guía de operación",
+      "module": "Docs",
+      "tags": ["docs"],
+      "dependencies": [],
+      "effort": "medio",
+      "description": "Crear documentación completa del sistema: (1) README principal con descripción del sistema, diagrama de arquitectura ASCII, lista de módulos y sus responsabilidades, (2) INSTALL.md con guía de instalación paso a paso (clonar → instalar → configurar .env → migrate → start), (3) API.md con referencia de todos los endpoints de la Admin API con ejemplos curl reales, (4) TROUBLESHOOTING.md con al menos 10 problemas comunes y sus soluciones, (5) GLOSSARY.md con definición de todos los estados de cuenta y tipos de error.",
+      "acceptance_criteria": [
+        "README con diagrama ASCII de arquitectura y mapa de módulos",
+        "INSTALL.md con guía en menos de 10 pasos ejecutables",
+        "API.md con request y response de ejemplo para cada endpoint",
+        "TROUBLESHOOTING.md con 10+ casos: cuenta no capturada, todos los 429, latencia alta, etc.",
+        "GLOSSARY.md: todos los estados (healthy, exhausted, cooling_down, auth_error, quota_exceeded, unreliable) y tipos de error (EXHAUSTED, AUTH_ERROR, TIMEOUT, SERVER_ERROR, RATE_LIMITED)",
+        "Documentación revisada por alguien que no participó en el desarrollo"
+      ],
+      "notes": "Escribir la documentación asumiendo que el lector nunca vio el código. Incluir ejemplos reales."
+    }
+  ]
+}

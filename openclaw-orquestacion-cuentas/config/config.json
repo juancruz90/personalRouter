@@ -1,0 +1,38 @@
+{
+  "$schema": "./config.schema.json",
+  "proxy": {
+    "port": 8080,
+    "comment": "Puerto del proxy HTTP principal"
+  },
+  "admin": {
+    "port": 8081,
+    "comment": "Puerto para la API interna de administración"
+  },
+  "database": {
+    "path": "./data/openclaw.db",
+    "comment": "Ruta del archivo SQLite"
+  },
+  "routing": {
+    "maxRetries": 3,
+    "fallbackToGlobal": true,
+    "comment": "Configuración inicial del motor de routing"
+  },
+  "backoff": {
+    "baseDelayMs": 5000,
+    "maxLevel": 6,
+    "comment": "Parámetros del backoff exponencial"
+  },
+  "quota": {
+    "warningThreshold": 0.8,
+    "comment": "Umbral de advertencia de cuota"
+  },
+  "timeouts": {
+    "connectionMs": 5000,
+    "responseMs": 30000,
+    "comment": "Timeouts por defecto para requests salientes"
+  },
+  "logging": {
+    "level": "info",
+    "comment": "Nivel de logs por defecto"
+  }
+}
