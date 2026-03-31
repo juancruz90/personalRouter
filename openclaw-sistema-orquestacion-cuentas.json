@@ -32,7 +32,7 @@
     {
       "id": 2,
       "priority": "critical",
-      "column": "backlog",
+      "column": "done",
       "title": "Configurar base de datos SQLite con esquema completo",
       "module": "DB",
       "tags": ["db", "infra"],
